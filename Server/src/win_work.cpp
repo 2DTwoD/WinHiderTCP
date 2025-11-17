@@ -1,38 +1,55 @@
 #include <iostream>
 #include "win_work.h"
 
-struct WinOpt{
-    WinOpt(bool visible, const QString &name) : visible(visible), name(name) {}
-    bool visible;
-    QString name;
-};
+WinWork::WinWork(QObject *parent): QObject(parent) {
+    ths = this;
+    keyboardMouseHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelKeyBoardMouseProc, GetModuleHandle(nullptr), 0);
+}
 
-void showHide(HWND window, bool visible)
-{
+LRESULT CALLBACK WinWork::LowLevelKeyBoardMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (ths && token.isValid() && nCode == HC_ACTION) {
+        if (wParam == token.getKey()) {
+            std::cout << "Keyboard/Mouse action"<< std::endl;
+            changeWindowVisible(true);
+        }
+    }
+    return CallNextHookEx(keyboardMouseHook, nCode, wParam, lParam);
+}
+
+BOOL CALLBACK WinWork::enumWindowCB(HWND window, const LPARAM lParam) {
+    bool visible = *reinterpret_cast<bool*>(lParam);
+    char curName[100];
+    memset(curName, 0, 100);
+    GetWindowTextA(window, curName, sizeof(curName));
+    auto qCurName = QString::fromUtf8(curName, strlen(curName));
+    if (qCurName.contains(token.getName(), Qt::CaseInsensitive)){
+        std::cout << "curName: " << qCurName.toStdString() << ", targetName: " << token.getName().toStdString() << std::endl;
+        showHide(window, visible);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+void WinWork::showHide(HWND window, bool visible) {
     if (visible) {
         ShowWindow(window, SW_SHOW);
+        emit ths->freeClient();
         SetForegroundWindow(window);
     } else {
         ShowWindow(window, SW_HIDE);
     }
 }
 
-BOOL CALLBACK enumWindowCB(HWND window, const LPARAM lParam)
-{
-    WinOpt winOpt = *((WinOpt*) lParam);
-    char curName[100];
-    memset(curName, 0, 100);
-    GetWindowTextA(window, curName, sizeof(curName));
-    auto qCurName = QString::fromUtf8(curName, 100);
-    if (qCurName.contains(winOpt.name, Qt::CaseInsensitive)){
-        std::cout << "curName: " << qCurName.toStdString() << "targetName: " << winOpt.name.toStdString() << std::endl;
-        showHide(window, winOpt.visible);
-        return FALSE;
-    }
-    return TRUE;
+void WinWork::changeWindowVisible(bool visible) {
+    EnumWindows(&enumWindowCB, reinterpret_cast<LPARAM>(&visible));
 }
 
-void changeWindowVisible(const QString& winName, bool visible){
-    WinOpt opt(visible, winName);
-    EnumWindows(&enumWindowCB, (LPARAM) &opt);
+void WinWork::newToken(Token& tokenObj) {
+    if(token.isValid()) return;
+    token = std::move(tokenObj);
+    changeWindowVisible(false);
+}
+
+void WinWork::freeDone() {
+    token.setValid(false);
 }

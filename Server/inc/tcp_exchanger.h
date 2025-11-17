@@ -19,8 +19,10 @@ public:
     bool sendToClient(const char* str);
 public slots:
     void process();
-    signals:
+    void freeClient();
+signals:
     void newToken(Token& tokenObj);
+    void freeDone();
     void finished();
 };
 

@@ -2,18 +2,32 @@
 #define TOKEN_H
 
 #include <QString>
+#include <QMutex>
 
 #include <winsock2.h>
 
-struct Token{
-    Token();
-    Token(Token& tokenObject);
-    Token(Token&& tokenObject) noexcept;
-    Token& operator=(Token& tokenObject);
-    Token& operator=(Token&& tokenObject);
-    bool isValid;
+
+class Token{
+private:
+    QMutex mutex;
+    bool valid;
     WPARAM key;
     QString wname;
+public:
+    Token();
+    Token(bool isValid);
+    Token(Token& tokenObject);
+    Token(Token&& tokenObject) noexcept;
+    Token& operator=(const Token& tokenObject);
+    Token& operator=(Token&& tokenObject) noexcept ;
+    void setValid(bool value);
+    void setKey(WPARAM value);
+    void setWName(QString &&value);
+    void setToken(bool valid, WPARAM key, QString &&wname);
+    bool isValid();
+    WPARAM getKey();
+    QString getName();
+    void print();
 };
 
 #endif //TOKEN_H

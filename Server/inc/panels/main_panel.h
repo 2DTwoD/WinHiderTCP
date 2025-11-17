@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
+#include <QCheckBox>
 
 class MainPanel: public QMainWindow{
 Q_OBJECT

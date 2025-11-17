@@ -6,11 +6,8 @@
 #include <iostream>
 #include <windows.h>
 #include <QThread>
-#include <utility>
 
-TCPobj::TCPobj(QObject *parent): QObject(parent) {
-    mouseHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandle(nullptr), 0);
-    keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyboardProc, GetModuleHandle(nullptr), 0);
+TCPobj::TCPobj(QObject *parent): QObject(parent), winWork(parent) {
     newThread(this);
 }
 
@@ -23,6 +20,7 @@ int TCPobj::initWinSock() {
     // Check for initialization success
     if (wsaerr != 0) {
         std::cout << "The Winsock dll not found!" << std::endl;
+        fail = true;
         return 0;
     } else {
         std::cout << "The Winsock dll found" << std::endl;
@@ -90,7 +88,11 @@ int TCPobj::listenSocket() {
         }
         auto tcpExchanger = new TCPexchanger(acceptSocket);
         QObject::connect(tcpExchanger, &TCPexchanger::newToken,
-                         this, &TCPobj::receiveToken, Qt::DirectConnection);
+                         &winWork, &WinWork::newToken, Qt::DirectConnection);
+        QObject::connect(&winWork, &WinWork::freeClient,
+                         tcpExchanger, &TCPexchanger::freeClient, Qt::DirectConnection);
+        QObject::connect(tcpExchanger, &TCPexchanger::freeDone,
+                         &winWork, &WinWork::freeDone, Qt::DirectConnection);
         newThread(tcpExchanger);
     }
     std::cout << "Server socket " << acceptSocket << " closed" << std::endl;
@@ -101,15 +103,16 @@ void TCPobj::process() {
     while(!shtdwn){
         if(!started()) continue;
         serverSocket = INVALID_SOCKET;
+        fail = false;
         switch(serverSocket){
             case INVALID_SOCKET:
-                if(!initWinSock()) break;
+                if((fail = !initWinSock())) break;
             case 0:
-                if(!createSocket()) break;
+                if((fail = !createSocket())) break;
             case 1:
-                if(!bindSocket()) break;
+                if((fail = !bindSocket())) break;
             default:
-                listenSocket();
+                fail = listenSocket();
         }
         stop();
     }
@@ -151,36 +154,6 @@ void TCPobj::setPort(uint16_t newPort) {
     port = newPort;
 }
 
-void TCPobj::receiveToken(Token& tokenObj) {
-    token = std::move(tokenObj);
-    if(token.isValid) {
-        changeWindowVisible(token.wname, false);
-    }
+bool TCPobj::failed() {
+    return fail;
 }
-
-void TCPobj::clearTokenObject() {
-    token = Token();
-}
-
-LRESULT CALLBACK TCPobj::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    if (token.isValid && nCode == HC_ACTION) {
-        auto* pMouse = (MSLLHOOKSTRUCT*)lParam;
-        if (wParam == token.key) {
-            std::cout << "Mouse action: X: " << pMouse->pt.x << ", Y: " << pMouse->pt.y << std::endl;
-            changeWindowVisible(token.wname, true);
-        }
-    }
-    return CallNextHookEx(mouseHook, nCode, wParam, lParam);
-}
-
-LRESULT CALLBACK TCPobj::LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    if (token.isValid && nCode == HC_ACTION) {
-        auto* pKeyBoard = (KBDLLHOOKSTRUCT*)lParam;
-        if (wParam == token.key) {
-            std::cout << "Keyboard action: " << (char)pKeyBoard->vkCode << std::endl;
-            changeWindowVisible(token.wname, true);
-        }
-    }
-    return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
-}
-

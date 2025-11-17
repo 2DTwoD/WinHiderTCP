@@ -4,7 +4,7 @@
 
 MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent) {
     this->setWindowTitle("WinHider TCP server");
-    this->resize(300, 100);
+    this->resize(310, 100);
 
     tcpObj = new TCPobj();
     updater = new Updater();
@@ -18,6 +18,7 @@ MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent) {
     stopButton = new QPushButton("stop", mainFrame);
     statusLabel = new QLabel("status: stopped", mainFrame);
     statusLabel->setAlignment(Qt::AlignCenter);
+
     mainLayout->addWidget(comPanel);
     mainLayout->addWidget(startButton);
     mainLayout->addWidget(stopButton);
@@ -29,12 +30,16 @@ MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent) {
 
     this->setCentralWidget(mainFrame);
     this->show();
+    if(comPanel->isAutostart()){
+        startAction();
+    }
 }
 
 MainPanel::~MainPanel() {
     std::cout << "MainPanel destructor" << std::endl;
     tcpObj->shutdown();
     updater->shutdown();
+    comPanel->saveConfig();
 }
 
 void MainPanel::startAction() {
@@ -49,13 +54,14 @@ void MainPanel::stopAction() {
 void MainPanel::updateAction() {
     if (tcpObj->started()) {
         comPanel->lock();
-        QString str = "started, address: " + QString::fromLocal8Bit(comPanel->getIP()) +
+        QString str = "status: started, address: " + QString::fromLocal8Bit(comPanel->getIP()) +
                                        ":" + QString::number(comPanel->getPort());
         statusLabel->setText(str);
     } else {
         comPanel->unlock();
-        statusLabel->setText("stopped");
+        statusLabel->setText(tcpObj->failed()? "status: failed": "status: stopped");
     }
     startButton->setEnabled(!tcpObj->started());
     stopButton->setEnabled(tcpObj->started());
 }
+

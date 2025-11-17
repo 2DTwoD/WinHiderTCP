@@ -4,27 +4,23 @@
 
 #include <winsock2.h>
 
-#include "token.h"
+#include "win_work.h"
 
 class TCPobj : public QObject{
 Q_OBJECT
 private:
     bool strt{false};
+    bool fail{false};
     bool shtdwn{false};
     char ip[17];
     uint16_t port;
     SOCKET serverSocket{INVALID_SOCKET};
-    static inline Token token;
+
+    WinWork winWork;
     int initWinSock();
     int createSocket();
     int bindSocket();
     int listenSocket();
-    void clearTokenObject();
-
-    inline static HHOOK mouseHook{};
-    inline static HHOOK keyboardHook{};
-    static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam);
-    static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
 public:
     TCPobj(QObject *parent = nullptr);
 
@@ -36,9 +32,9 @@ public:
     void stop();
     void shutdown();
     bool started();
+    bool failed();
 public slots:
     void process();
-    void receiveToken(Token& tokenObj);
 signals:
     void finished();
 };
