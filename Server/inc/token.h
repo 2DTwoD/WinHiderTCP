@@ -15,6 +15,9 @@ private:
     QString wname;
 public:
     Token();
+
+    virtual ~Token();
+
     Token(bool isValid);
     Token(Token& tokenObject);
     Token(Token&& tokenObject) noexcept;

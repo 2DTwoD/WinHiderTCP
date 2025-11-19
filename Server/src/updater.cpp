@@ -1,8 +1,8 @@
 #include "updater.h"
 #include "thread_builder.h"
 
-Updater::Updater(){
-    newThread(this);
+Updater::Updater(QObject* parent){
+    newThread(parent, this);
 }
 
 void Updater::process() {
@@ -14,5 +14,10 @@ void Updater::process() {
 }
 
 void Updater::shutdown() {
+    qDebug("Updater: shutdown");
     shtdwn = true;
+}
+
+Updater::~Updater() {
+    qDebug("Updater: destructor");
 }

@@ -8,7 +8,10 @@ Q_OBJECT
 private:
     bool shtdwn{false};
 public:
-    explicit Updater();
+    explicit Updater(QObject* parent);
+
+    ~Updater() override;
+
     void shutdown();
 
 public slots:

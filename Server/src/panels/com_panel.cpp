@@ -4,9 +4,8 @@
 #include <QRegularExpression>
 #include <QHBoxLayout>
 #include <QRegularExpressionValidator>
-#include <QFile>
 
-ComPanel::ComPanel(QWidget *parent): QFrame(parent) {
+ComPanel::ComPanel(QWidget *parent): QFrame(parent), fileWork(new FileWork(this)) {
     auto layout = new QHBoxLayout(this);
     this->setLayout(layout);
 
@@ -67,22 +66,20 @@ uint16_t ComPanel::getPort() {
     return res;
 }
 
+QString ComPanel::getQIP() {
+    return ipLineEdit->text();
+}
+
+QString ComPanel::getQPort() {
+    return portLineEdit->text();
+}
+
 uint16_t ComPanel::isAutostart() {
     return autoStartCheckBox->isChecked();
 }
 
 void ComPanel::readConfig() {
-    QFile file("config.txt");
-
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning("Cannot open file for reading");
-        return;
-    }
-
-    QTextStream in(&file);
-    auto list = in.readLine().split(";");
-    file.close();
-
+    auto list = fileWork->readConfig().split(";");
     for(auto item: list){
         auto keyValue = item.split(":");
         if(keyValue.size() != 2) break;
@@ -91,7 +88,7 @@ void ComPanel::readConfig() {
         } else if(keyValue[0] == "port"){
             portLineEdit->setText(keyValue[1]);
         } else if(keyValue[0] == "autostart"){
-            autoStartCheckBox->setChecked(keyValue[1].toUInt());
+            autoStartCheckBox->setChecked(keyValue[1].toUInt() > 0);
         } else {
             break;
         }
@@ -101,13 +98,10 @@ void ComPanel::readConfig() {
 }
 
 void ComPanel::saveConfig() {
-    QString filename = "config.txt";
-    QFile file(filename);
-    if (file.open(QIODevice::WriteOnly)) {
-        QTextStream out(&file);
-        out << "ip:" << getIP() << ";port:" << getPort() << ";autostart:" << autoStartCheckBox->isChecked();
-    } else {
-        qWarning("Could not open file");
-    }
-    file.close();
+    fileWork->saveConfig(std::move("ip:" + getQIP() + ";port:" + getQPort() +
+    ";autostart:" + QString::number(isAutostart())));
+}
+
+ComPanel::~ComPanel() {
+    qDebug("ComPanel: destructor");
 }

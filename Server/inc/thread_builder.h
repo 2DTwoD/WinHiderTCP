@@ -5,16 +5,16 @@
 #include <iostream>
 
 template <typename T>
-bool newThread(T *obj){
+bool newThread(QObject *parent, T *threadObj){
     if(!std::is_base_of<QObject, T>::value){
-        std::cout << "Object: " << obj << "is not a Object" << std::endl;
+        qDebug("newThread, incoming object is not a QObject");
         return false;
     }
-    auto thread = new QThread();
-    obj->moveToThread(thread);
-    QObject::connect(thread, &QThread::started, obj, &T::process);
-    QObject::connect( obj, &T::finished, thread, &QThread::quit);
-    QObject::connect( obj, &T::finished, obj, &T::deleteLater);
+    auto thread = new QThread(parent);
+    threadObj->moveToThread(thread);
+    QObject::connect(thread, &QThread::started, threadObj, &T::process);
+    QObject::connect(threadObj, &T::finished, thread, &QThread::quit);
+    QObject::connect(threadObj, &T::finished, threadObj, &T::deleteLater);
     QObject::connect( thread, &QThread::finished, thread, &QThread::deleteLater);
     thread->start();
     return true;

@@ -83,6 +83,9 @@ QString Token::getName() {
 }
 
 void Token::print() {
-    std::cout << "Token print: valid: " << isValid() << ", key: " << getKey() << ", wname: "
-              << getName().toStdString() << std::endl;
+    qDebug("Token: print: valid: %d, key: %d, wname: %s", isValid(), getKey(), getName().toUtf8().data());
+}
+
+Token::~Token() {
+    qDebug("Token: destructor");
 }

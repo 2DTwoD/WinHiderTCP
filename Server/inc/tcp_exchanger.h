@@ -14,14 +14,20 @@ class TCPexchanger : public QObject {
 private:
     SOCKET acceptSocket;
     Token parseMessage(char *const message);
+    bool shtdwn{false};
 public:
     explicit TCPexchanger(SOCKET acceptSocket = SOCKET_ERROR);
+
+    ~TCPexchanger() override;
+
     bool sendToClient(const char* str);
+    void shutdown();
+    void closeSocket();
 public slots:
     void process();
     void freeClient();
 signals:
-    void newToken(Token& tokenObj);
+    void newToken(Token tokenObj);
     void freeDone();
     void finished();
 };

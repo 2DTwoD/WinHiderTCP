@@ -5,6 +5,7 @@
 #include <winsock2.h>
 
 #include "win_work.h"
+#include "tcp_exchanger.h"
 
 class TCPobj : public QObject{
 Q_OBJECT
@@ -15,14 +16,16 @@ private:
     char ip[17];
     uint16_t port;
     SOCKET serverSocket{INVALID_SOCKET};
+    WinWork* winWork;
+    std::unique_ptr<QList<TCPexchanger*>> clientList;
 
-    WinWork winWork;
     int initWinSock();
     int createSocket();
     int bindSocket();
     int listenSocket();
+    void closeSocket();
 public:
-    TCPobj(QObject *parent = nullptr);
+    TCPobj(QObject *parent);
 
     ~TCPobj() override;
 
@@ -31,8 +34,9 @@ public:
     void start(char* ip, uint16_t port);
     void stop();
     void shutdown();
-    bool started();
-    bool failed();
+    bool started() const;
+    bool failed() const;
+
 public slots:
     void process();
 signals:

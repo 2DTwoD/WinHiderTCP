@@ -1,13 +1,9 @@
 #include <QVBoxLayout>
-#include <iostream>
 #include "panels/main_panel.h"
 
-MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent) {
+MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), tcpObj(new TCPobj(this)), updater(new Updater(this)) {
     this->setWindowTitle("WinHider TCP server");
     this->resize(310, 100);
-
-    tcpObj = new TCPobj();
-    updater = new Updater();
 
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
@@ -36,18 +32,20 @@ MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent) {
 }
 
 MainPanel::~MainPanel() {
-    std::cout << "MainPanel destructor" << std::endl;
+    qDebug("MainPanel: destructor");
     tcpObj->shutdown();
     updater->shutdown();
     comPanel->saveConfig();
+    QThread::currentThread()->msleep(1000);
 }
 
 void MainPanel::startAction() {
-    std::cout << comPanel->getIP() << ":" << comPanel->getPort() << std::endl;
+    qDebug("MainPanel: start action, server with address: %s:%d", comPanel->getIP(), comPanel->getPort());
     tcpObj->start(comPanel->getIP(), comPanel->getPort());
 }
 
 void MainPanel::stopAction() {
+    qDebug("MainPanel: stop action");
     tcpObj->stop();
 }
 

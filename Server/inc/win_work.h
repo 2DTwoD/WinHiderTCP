@@ -20,9 +20,12 @@ private:
 public:
     explicit WinWork(QObject *parent);
 
+    ~WinWork() override;
+
 public slots:
-    void newToken(Token& tokenObj);
+    void newToken(Token tokenObj);
     void freeDone();
+    void showHiddenWindow();
 signals:
     void freeClient();
 };

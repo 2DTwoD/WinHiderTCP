@@ -1,7 +1,6 @@
 #include "tcp_exchanger.h"
 
 #include <windows.h>
-#include <iostream>
 
 
 TCPexchanger::TCPexchanger(SOCKET acceptSocket): acceptSocket(acceptSocket){
@@ -9,26 +8,24 @@ TCPexchanger::TCPexchanger(SOCKET acceptSocket): acceptSocket(acceptSocket){
 
 void TCPexchanger::process() {
     char receiveBuffer[DATA_LEN];
-    while(1){
+    while(!shtdwn){
         memset(receiveBuffer, 0, DATA_LEN);
         // Receive data from the client
         int rbyteCount = recv(acceptSocket, receiveBuffer, DATA_LEN, 0);
-        if (rbyteCount < 0) {
-            std::cout << "Server recv error: " << WSAGetLastError() << std::endl;
+        if (rbyteCount <= 0) {
+            qDebug("TCPexchanger: server recv error: %d", WSAGetLastError());
             break;
         } else {
-            std::cout << "Received data: " << receiveBuffer << std::endl;
+            qDebug("TCPexchanger: received data: %s", receiveBuffer);
         }
         Token token = parseMessage(receiveBuffer);
         if(token.isValid()){
-            sendToClient("OK");
+            qDebug("TCPexchanger signal: newToken");
             emit newToken(token);
-        } else{
-            sendToClient("BAD");
         }
     }
-    closesocket(acceptSocket);
-    std::cout << "Client socket " << acceptSocket << " closed" << std::endl;
+    closeSocket();
+    qDebug("TCPexchanger: client socket %d closed", acceptSocket);
     emit finished();
 }
 
@@ -47,8 +44,8 @@ Token TCPexchanger::parseMessage(char *const message) {
             break;
         }
     }
-    std::cout << "tokenObj: isValid: " << result.isValid() << ", key: " << result.getKey()
-              << ", wname: " << result.getName().toStdString() << std:: endl;
+    qDebug("TCPexchanger: parsed token: isValid: %d, key %d, wname %s",
+           result.isValid(), result.getKey(), result.getName().toUtf8().data());
     return result;
 }
 
@@ -56,16 +53,34 @@ bool TCPexchanger::sendToClient(const char* str) {
     // Send a response to the client
     int sbyteCount = send(acceptSocket, str, strlen(str), 0);
     if (sbyteCount == SOCKET_ERROR) {
-        std::cout << "Server send error: " << WSAGetLastError() << std::endl;
+        qDebug("TCPexchanger: server send error: %d", WSAGetLastError());
         return false;
     } else {
-        std::cout << "Server: Sent " << sbyteCount << " bytes" << std::endl;
+        qDebug("TCPexchanger: server: sent %d bytes", sbyteCount);
     }
     return true;
 }
 
 void TCPexchanger::freeClient() {
+    qDebug("TCPexchanger slot: freeClient");
     if(sendToClient("FREE")){
+        qDebug("TCPexchanger signal: freeDone");
         emit freeDone();
     }
 }
+
+void TCPexchanger::shutdown() {
+    qDebug("TCPexchanger: with client socket %d shutdown", acceptSocket);
+    shtdwn = true;
+    closeSocket();
+    emit finished();
+}
+
+TCPexchanger::~TCPexchanger() {
+    qDebug("TCPexchanger destructor");
+}
+
+void TCPexchanger::closeSocket() {
+    closesocket(acceptSocket);
+}
+
