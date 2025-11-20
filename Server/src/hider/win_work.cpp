@@ -1,4 +1,4 @@
-#include "win_work.h"
+#include "hider/win_work.h"
 
 WinWork::WinWork(QObject *parent): QObject(parent) {
     ths = this;

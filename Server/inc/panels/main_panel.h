@@ -1,9 +1,9 @@
 #ifndef MAIN_PANEL_H
 #define MAIN_PANEL_H
 
-#include "thread_builder.h"
-#include "tcp_obj.h"
-#include "updater.h"
+#include "misc/thread_builder.h"
+#include "tcp/tcp_obj.h"
+#include "misc/updater.h"
 #include "com_panel.h"
 
 #include <QMainWindow>

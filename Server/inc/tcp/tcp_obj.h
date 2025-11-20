@@ -1,7 +1,7 @@
 #ifndef TCP_OBJ_H
 #define TCP_OBJ_H
 
-#include "win_work.h"
+#include "hider/win_work.h"
 #include "tcp_exchanger.h"
 
 #include <QObject>

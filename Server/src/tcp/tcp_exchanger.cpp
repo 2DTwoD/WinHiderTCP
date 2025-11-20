@@ -1,4 +1,4 @@
-#include "tcp_exchanger.h"
+#include "tcp/tcp_exchanger.h"
 
 #include <windows.h>
 
@@ -22,6 +22,9 @@ void TCPexchanger::process() {
         if(token.isValid()){
             qDebug("TCPexchanger signal: newToken");
             emit newToken(token);
+            sendToClient("OK");
+        } else {
+            sendToClient("BAD");
         }
     }
     closeSocket();
@@ -70,9 +73,8 @@ void TCPexchanger::freeClient() {
 }
 
 void TCPexchanger::shutdown() {
-    qDebug("TCPexchanger: with client socket %d shutdown", acceptSocket);
+    qDebug("TCPexchanger: client socket %d shutdown", acceptSocket);
     shtdwn = true;
-    closeSocket();
     emit finished();
 }
 

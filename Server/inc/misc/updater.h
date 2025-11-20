@@ -9,9 +9,9 @@ Q_OBJECT
 private:
     QThread* currentThread{nullptr};
     bool shtdwn{false};
+    int updateTime;
 public:
-    explicit Updater(QObject* parent);
-
+    Updater(QObject* parent, int updateTime = 500);
     ~Updater() override;
 
     void shutdown();

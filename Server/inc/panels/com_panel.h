@@ -1,7 +1,7 @@
 #ifndef COM_PANEL_H
 #define COM_PANEL_H
 
-#include "file_work.h"
+#include "misc/file_work.h"
 
 #include <QFrame>
 #include <QLineEdit>

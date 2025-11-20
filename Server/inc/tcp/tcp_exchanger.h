@@ -1,7 +1,7 @@
 #ifndef TCP_EXCHANGER_H
 #define TCP_EXCHANGER_H
 
-#include "token.h"
+#include "hider/token.h"
 
 #include <QObject>
 #include <winsock2.h>

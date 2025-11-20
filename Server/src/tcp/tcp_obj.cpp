@@ -1,5 +1,5 @@
-#include "tcp_obj.h"
-#include "thread_builder.h"
+#include "tcp/tcp_obj.h"
+#include "misc/thread_builder.h"
 
 #include <windows.h>
 #include <QThread>

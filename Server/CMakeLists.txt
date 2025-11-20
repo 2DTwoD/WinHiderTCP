@@ -23,22 +23,22 @@ add_executable(
         main.cpp
         src/panels/com_panel.cpp
         src/panels/main_panel.cpp
-        src/file_work.cpp
-        src/tcp_exchanger.cpp
-        src/tcp_obj.cpp
-        src/token.cpp
-        src/updater.cpp
-        src/win_work.cpp
+        src/misc/file_work.cpp
+        src/tcp/tcp_exchanger.cpp
+        src/tcp/tcp_obj.cpp
+        src/hider/token.cpp
+        src/misc/updater.cpp
+        src/hider/win_work.cpp
         #.h
         inc/panels/com_panel.h
         inc/panels/main_panel.h
-        inc/file_work.h
-        inc/tcp_exchanger.h
-        inc/tcp_obj.h
-        inc/thread_builder.h
-        inc/token.h
-        inc/updater.h
-        inc/win_work.h
+        inc/misc/file_work.h
+        inc/tcp/tcp_exchanger.h
+        inc/tcp/tcp_obj.h
+        inc/misc/thread_builder.h
+        inc/hider/token.h
+        inc/misc/updater.h
+        inc/hider/win_work.h
 )
 
 include_directories(inc)

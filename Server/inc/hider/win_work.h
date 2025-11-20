@@ -1,7 +1,7 @@
 #ifndef WIN_WORK_H
 #define WIN_WORK_H
 
-#include "token.h"
+#include "hider/token.h"
 
 #include <winsock2.h>
 #include <windows.h>
@@ -18,15 +18,16 @@ private:
     static BOOL CALLBACK enumWindowCB(HWND window, const LPARAM lParam);
     static void showHide(HWND window, bool visible);
     static void changeWindowVisible(bool visible);
+
 public:
     explicit WinWork(QObject *parent);
-
     ~WinWork() override;
+    void showHiddenWindow();
 
 public slots:
     void newToken(Token tokenObj);
     void freeDone();
-    void showHiddenWindow();
+
 signals:
     void freeClient();
 };
