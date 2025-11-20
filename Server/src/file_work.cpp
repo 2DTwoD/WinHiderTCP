@@ -1,6 +1,7 @@
+#include "file_work.h"
+
 #include <qtextstream.h>
 #include <QFile>
-#include "file_work.h"
 
 FileWork::FileWork(QObject *parent) : QObject(parent) {}
 

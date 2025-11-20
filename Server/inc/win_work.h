@@ -1,11 +1,12 @@
 #ifndef WIN_WORK_H
 #define WIN_WORK_H
+
+#include "token.h"
+
 #include <winsock2.h>
 #include <windows.h>
-#include <string>
 #include <QString>
 #include <QObject>
-#include "token.h"
 
 class WinWork: public QObject{
 Q_OBJECT

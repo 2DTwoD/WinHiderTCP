@@ -1,11 +1,12 @@
 #ifndef TCP_OBJ_H
 #define TCP_OBJ_H
-#include <QObject>
-
-#include <winsock2.h>
 
 #include "win_work.h"
 #include "tcp_exchanger.h"
+
+#include <QObject>
+#include <winsock2.h>
+
 
 class TCPobj : public QObject{
 Q_OBJECT

@@ -18,7 +18,7 @@ void TCPexchanger::process() {
         } else {
             qDebug("TCPexchanger: received data: %s", receiveBuffer);
         }
-        Token token = parseMessage(receiveBuffer);
+        Token token = std::move(parseMessage(receiveBuffer));
         if(token.isValid()){
             qDebug("TCPexchanger signal: newToken");
             emit newToken(token);

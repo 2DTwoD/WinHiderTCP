@@ -10,7 +10,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_PREFIX_PATH "D:\\Distrib\\Qt\\Qt 6_7_2\\mingw_64\\")
 
-find_package(Qt6 COMPONENTS
+find_package(
+        Qt6 COMPONENTS
         Core
         Gui
         Widgets
@@ -42,7 +43,8 @@ add_executable(
 
 include_directories(inc)
 
-target_link_libraries(Server
+target_link_libraries(
+        Server
         Qt::Core
         Qt::Gui
         Qt::Widgets

@@ -1,10 +1,11 @@
 #ifndef COM_PANEL_H
 #define COM_PANEL_H
 
+#include "file_work.h"
+
 #include <QFrame>
 #include <QLineEdit>
 #include <QCheckBox>
-#include "file_work.h"
 
 class ComPanel: public QFrame{
 private:

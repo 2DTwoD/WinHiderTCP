@@ -1,6 +1,5 @@
 #include "tcp_obj.h"
 #include "thread_builder.h"
-#include "win_work.h"
 
 #include <windows.h>
 #include <QThread>
@@ -115,6 +114,7 @@ void TCPobj::process() {
         }
         stop();
     }
+    emit finished();
 }
 
 void TCPobj::start(char* ip, uint16_t port) {
@@ -138,7 +138,6 @@ void TCPobj::shutdown() {
     }
     stop();
     shtdwn = true;
-    emit finished();
 }
 
 bool TCPobj::started() const {

@@ -2,13 +2,13 @@
 #include "thread_builder.h"
 
 Updater::Updater(QObject* parent){
-    newThread(parent, this);
+    currentThread = newThread<Updater>(parent, this);
 }
 
 void Updater::process() {
     while(!shtdwn) {
         emit update();
-        QThread::currentThread()->msleep(500);
+        QThread::msleep(500);
     }
     emit finished();
 }
@@ -16,6 +16,7 @@ void Updater::process() {
 void Updater::shutdown() {
     qDebug("Updater: shutdown");
     shtdwn = true;
+    currentThread->wait(1000);
 }
 
 Updater::~Updater() {

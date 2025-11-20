@@ -1,4 +1,3 @@
-#include <iostream>
 #include "token.h"
 
 Token::Token(): valid(false), key(WM_NULL), wname("") {

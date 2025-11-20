@@ -2,10 +2,12 @@
 #define UPDATER_H
 
 #include <QObject>
+#include <QThread>
 
 class Updater: public QObject{
 Q_OBJECT
 private:
+    QThread* currentThread{nullptr};
     bool shtdwn{false};
 public:
     explicit Updater(QObject* parent);
@@ -13,7 +15,6 @@ public:
     ~Updater() override;
 
     void shutdown();
-
 public slots:
     void process();
 signals:

@@ -1,10 +1,11 @@
-#include <QVBoxLayout>
 #include "panels/main_panel.h"
 
-MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), tcpObj(new TCPobj(this)), updater(new Updater(this)) {
+#include <QVBoxLayout>
+
+MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent),
+                                        tcpObj(new TCPobj(this)), updater(new Updater(this)) {
     this->setWindowTitle("WinHider TCP server");
     this->resize(310, 100);
-
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
     mainFrame->setLayout(mainLayout);
@@ -36,7 +37,6 @@ MainPanel::~MainPanel() {
     tcpObj->shutdown();
     updater->shutdown();
     comPanel->saveConfig();
-    QThread::currentThread()->msleep(1000);
 }
 
 void MainPanel::startAction() {
