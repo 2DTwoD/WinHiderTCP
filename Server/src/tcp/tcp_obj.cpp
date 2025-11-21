@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <QThread>
 
-TCPobj::TCPobj(QObject *parent): winWork(new WinWork(this)), clientList(std::make_unique<QList<TCPexchanger*>>()) {
+TCPobj::TCPobj(QObject *parent): winWork(new WinWork(this)), clientList(std::make_unique<QSet<TCPexchanger*>>()) {
     newThread(parent, this);
 }
 
@@ -87,8 +87,13 @@ int TCPobj::listenSocket() {
                          tcpExchanger, &TCPexchanger::freeClient, Qt::DirectConnection);
         QObject::connect(tcpExchanger, &TCPexchanger::freeDone,
                          winWork, &WinWork::freeDone, Qt::DirectConnection);
+        QObject::connect(tcpExchanger, &TCPexchanger::clearTCPexchanger,
+                         this, &TCPobj::clearTCPexchanger, Qt::DirectConnection);
         newThread(this, tcpExchanger);
-        clientList->append(tcpExchanger);
+        mutex.lock();
+        clientList->insert(tcpExchanger);
+        mutex.unlock();
+        qDebug("TCPobj: clientList size = %d", clientList->size());
     }
     qDebug("TCPobj: server socket %d closed", acceptSocket);
     return 1;
@@ -165,4 +170,11 @@ void TCPobj::closeSocket() {
     if(serverSocket != INVALID_SOCKET){
         closesocket(serverSocket);
     }
+}
+
+void TCPobj::clearTCPexchanger(TCPexchanger *tcpExchager) {
+    mutex.lock();
+    clientList->erase(clientList->constFind(tcpExchager));
+    qDebug("TCPobj: clientList size = %d", clientList->size());
+    mutex.unlock();
 }

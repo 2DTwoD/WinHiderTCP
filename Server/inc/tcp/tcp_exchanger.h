@@ -29,6 +29,7 @@ public slots:
 signals:
     void newToken(Token tokenObj);
     void freeDone();
+    void clearTCPexchanger(TCPexchanger* tcpExchager);
     void finished();
 };
 

@@ -20,13 +20,15 @@ void TCPexchanger::process() {
         }
         Token token = std::move(parseMessage(receiveBuffer));
         if(token.isValid()){
-            qDebug("TCPexchanger signal: newToken");
-            emit newToken(token);
-            sendToClient("OK");
+            if(sendToClient("OK")){
+                qDebug("TCPexchanger signal: newToken");
+                emit newToken(token);
+            }
         } else {
             sendToClient("BAD");
         }
     }
+    emit clearTCPexchanger(this);
     closeSocket();
     qDebug("TCPexchanger: client socket %d closed", acceptSocket);
     emit finished();
@@ -75,7 +77,6 @@ void TCPexchanger::freeClient() {
 void TCPexchanger::shutdown() {
     qDebug("TCPexchanger: client socket %d shutdown", acceptSocket);
     shtdwn = true;
-    emit finished();
 }
 
 TCPexchanger::~TCPexchanger() {

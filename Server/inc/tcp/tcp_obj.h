@@ -5,6 +5,8 @@
 #include "tcp_exchanger.h"
 
 #include <QObject>
+#include <QSet>
+#include <QMutex>
 #include <winsock2.h>
 
 
@@ -18,7 +20,8 @@ private:
     uint16_t port;
     SOCKET serverSocket{INVALID_SOCKET};
     WinWork* winWork;
-    std::unique_ptr<QList<TCPexchanger*>> clientList;
+    std::unique_ptr<QSet<TCPexchanger*>> clientList;
+    QMutex mutex;
 
     int initWinSock();
     int createSocket();
@@ -40,6 +43,7 @@ public:
 
 public slots:
     void process();
+    void clearTCPexchanger(TCPexchanger* tcpExchager);
 signals:
     void finished();
 };
