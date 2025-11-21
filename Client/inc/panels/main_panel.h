@@ -19,8 +19,8 @@ private:
     TCPobj* tcpObj;
     ComPanel* comPanel;
     Updater* updater;
-    QPushButton* startButton;
-    QPushButton* stopButton;
+    QPushButton* connectButton;
+    QPushButton* disconnectButton;
     QLabel* statusLabel;
 public:
     explicit MainPanel(QWidget *parent = nullptr);

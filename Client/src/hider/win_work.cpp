@@ -2,11 +2,14 @@
 
 WinWork::WinWork(QObject *parent): QObject(parent) {
     ths = this;
-    keyboardMouseHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelKeyBoardMouseProc, GetModuleHandle(nullptr), 0);
+    keyboardMouseHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyBoardMouseProc, GetModuleHandle(nullptr), 0);
 }
 
 LRESULT CALLBACK WinWork::LowLevelKeyBoardMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    if (ths && token.isValid() && nCode == HC_ACTION) {
+    if (ths && nCode == HC_ACTION) {
+        qDebug("WinWork: Keyboard/Mouse action: %04X", wParam);
+        LPSTR keyName; // Buffer to store the key name
+        qDebug("WinWork: KeyName: %d", GetAsyncKeyState(VK_SPACE) != 0);
         if (wParam == token.getKey()) {
             qDebug("WinWork: Keyboard/Mouse action");
             changeWindowVisible(true);

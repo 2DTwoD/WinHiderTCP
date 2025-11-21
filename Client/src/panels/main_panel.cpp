@@ -4,25 +4,25 @@
 
 MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent),
                                         tcpObj(new TCPobj(this)), updater(new Updater(this)) {
-    this->setWindowTitle("WinHider TCP server");
+    this->setWindowTitle("WinHider TCP client");
     this->resize(310, 100);
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
     mainFrame->setLayout(mainLayout);
 
     comPanel = new ComPanel(mainFrame);
-    startButton = new QPushButton("start", mainFrame);
-    stopButton = new QPushButton("stop", mainFrame);
-    statusLabel = new QLabel("status: stopped", mainFrame);
+    connectButton = new QPushButton("connect", mainFrame);
+    disconnectButton = new QPushButton("disconnect", mainFrame);
+    statusLabel = new QLabel("status: disconnected", mainFrame);
     statusLabel->setAlignment(Qt::AlignCenter);
 
     mainLayout->addWidget(comPanel);
-    mainLayout->addWidget(startButton);
-    mainLayout->addWidget(stopButton);
+    mainLayout->addWidget(connectButton);
+    mainLayout->addWidget(disconnectButton);
     mainLayout->addWidget(statusLabel);
 
-    QObject::connect(startButton, &QPushButton::clicked, this, &MainPanel::startAction);
-    QObject::connect(stopButton, &QPushButton::clicked, this, &MainPanel::stopAction);
+    QObject::connect(connectButton, &QPushButton::clicked, this, &MainPanel::startAction);
+    QObject::connect(disconnectButton, &QPushButton::clicked, this, &MainPanel::stopAction);
     QObject::connect(updater, &Updater::update, this, &MainPanel::updateAction);
 
     this->setCentralWidget(mainFrame);
@@ -41,25 +41,25 @@ MainPanel::~MainPanel() {
 
 void MainPanel::startAction() {
     qDebug("MainPanel: start action, server with address: %s:%d", comPanel->getIP(), comPanel->getPort());
-    tcpObj->start(comPanel->getIP(), comPanel->getPort());
+    //tcpObj->start(comPanel->getIP(), comPanel->getPort());
 }
 
 void MainPanel::stopAction() {
     qDebug("MainPanel: stop action");
-    tcpObj->stop();
+    //tcpObj->stop();
 }
 
 void MainPanel::updateAction() {
     if (tcpObj->started()) {
         comPanel->lock();
-        QString str = "status: started, address: " + QString::fromLocal8Bit(comPanel->getIP()) +
+        QString str = "status: connected to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
                                        ":" + QString::number(comPanel->getPort());
         statusLabel->setText(str);
     } else {
         comPanel->unlock();
-        statusLabel->setText(tcpObj->failed()? "status: failed": "status: stopped");
+        statusLabel->setText(tcpObj->failed()? "status: failed": "status: disconnected");
     }
-    startButton->setEnabled(!tcpObj->started());
-    stopButton->setEnabled(tcpObj->started());
+    connectButton->setEnabled(!tcpObj->started());
+    disconnectButton->setEnabled(tcpObj->started());
 }
 

@@ -21,6 +21,7 @@ add_executable(
         Client
         #.cpp
         main.cpp
+        src/panels/bind_panel.cpp
         src/panels/com_panel.cpp
         src/panels/main_panel.cpp
         src/misc/file_work.cpp
@@ -30,6 +31,7 @@ add_executable(
         src/misc/updater.cpp
         src/hider/win_work.cpp
         #.h
+        inc/panels/bind_panel.h
         inc/panels/com_panel.h
         inc/panels/main_panel.h
         inc/misc/file_work.h
