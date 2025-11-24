@@ -11,25 +11,28 @@
 class WinWork: public QObject{
 Q_OBJECT
 private:
+    static inline QList<uint16_t> ignoreKeyList= {0x20, 0x1B};
+    static inline QList<uint16_t> ignoreActionList= {0x200, 0x201, 0x202, 0x204, 0x205};
+    static inline bool bindMode{false};
     static inline Token token;
     static inline WinWork *ths{nullptr};
-    inline static HHOOK keyboardMouseHook{};
-    static LRESULT CALLBACK LowLevelKeyBoardMouseProc(int nCode, WPARAM wParam, LPARAM lParam);
-    static BOOL CALLBACK enumWindowCB(HWND window, const LPARAM lParam);
-    static void showHide(HWND window, bool visible);
-    static void changeWindowVisible(bool visible);
+    inline static HHOOK keyboardHook{};
+    inline static HHOOK mouseHook{};
+    static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK LowLevelKeyBoardProc(int nCode, WPARAM wParam, LPARAM lParam);
+    static void LowLevelKeyBoardMouse(int nCode, WPARAM wParam, PKBDLLHOOKSTRUCT keyInfo);
+
+    static QString getKeyCode(WPARAM wParam, PKBDLLHOOKSTRUCT keyInfo);
 
 public:
     explicit WinWork(QObject *parent);
     ~WinWork() override;
-    void showHiddenWindow();
 
 public slots:
-    void newToken(Token tokenObj);
-    void freeDone();
-
+    void startBind();
 signals:
-    void freeClient();
+    void bindFinished(const QString& value);
+    void keyboardMouseAction(const QString& value);
 };
 
 #endif //WIN_WORK_H

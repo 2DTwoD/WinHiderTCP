@@ -7,25 +7,51 @@ BindPanel::BindPanel(QWidget *parent): QFrame(parent) {
     auto layout = new QHBoxLayout(this);
     this->setLayout(layout);
 
-    auto winNameLabel = new QLabel("Название окна:", this);
-    auto bindKeyLAbel = new QLabel("Кнопка действия:", this);
+    auto winNameLabel = new QLabel("Win. name:", this);
+    auto bindKeyLabel = new QLabel("Button:", this);
     winNameLineEdit = new QLineEdit("New folder", this);
-    bindKeyButton = new QPushButton("WM_NULL", this);
-//    portLineEdit->setFixedWidth(40);
-//    autoStartCheckBox = new QCheckBox("Autostart", this);
-//
-//    QRegularExpression ipRE(R"(^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$)");
-//    auto ipValidator = new QRegularExpressionValidator(ipRE, this);
-//    ipLineEdit->setValidator(ipValidator);
-//
-//    QRegularExpression portRE("\\d+");
-//    auto portValidator = new QRegularExpressionValidator(portRE, this);
-//    portLineEdit->setValidator(portValidator);
-//
-//    layout->addWidget(ipLabel);
-//    layout->addWidget(ipLineEdit);
-//    layout->addWidget(portLabel);
-//    layout->addWidget(portLineEdit);
-//    layout->addWidget(autoStartCheckBox);
-//    readConfig();
+    bindKeyButton = new QPushButton("not binded", this);
+    layout->addWidget(winNameLabel);
+    layout->addWidget(winNameLineEdit);
+    layout->addWidget(bindKeyLabel);
+    layout->addWidget(bindKeyButton);
+    QObject::connect(bindKeyButton, &QPushButton::clicked, this, &BindPanel::bindButtonAction);
+}
+
+BindPanel::~BindPanel() {
+    qDebug("BindPanel: destructor");
+}
+
+void BindPanel::bindFinished(const QString& value) {
+    if(value.isEmpty()) return;
+    bindKeyButton->setText(value);
+}
+
+void BindPanel::bindButtonAction() {
+    bindKeyButton->setText("binding...");
+}
+
+QPushButton *BindPanel::getBindButton() {
+    return bindKeyButton;
+}
+
+void BindPanel::lock(bool lockFlag) {
+    winNameLineEdit->setEnabled(!lockFlag);
+    bindKeyButton->setEnabled(!lockFlag);
+}
+
+QString BindPanel::getQWinName() {
+    return winNameLineEdit->text();
+}
+
+QString BindPanel::getQKey() {
+    return bindKeyButton->text();
+}
+
+void BindPanel::setQWinName(const QString& value) {
+    winNameLineEdit->setText(value);
+}
+
+void BindPanel::setQKey(const QString& value) {
+    bindKeyButton->setText(value);
 }

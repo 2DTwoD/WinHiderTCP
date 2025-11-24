@@ -2,9 +2,8 @@
 #include "misc/thread_builder.h"
 
 #include <windows.h>
-#include <QThread>
 
-TCPobj::TCPobj(QObject *parent): winWork(new WinWork(this)), clientList(std::make_unique<QSet<TCPexchanger*>>()) {
+TCPobj::TCPobj(QObject *parent) {
     newThread(parent, this);
 }
 
@@ -27,11 +26,11 @@ int TCPobj::initWinSock() {
 
 int TCPobj::createSocket() {
     // Create a socket
-    serverSocket = INVALID_SOCKET;
-    serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    clientSocket = INVALID_SOCKET;
+    clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     // Check for socket creation success
-    if (serverSocket == INVALID_SOCKET) {
+    if (clientSocket == INVALID_SOCKET) {
         qDebug("TCPobj: error at socket(): %d", WSAGetLastError());
         WSACleanup();
         return 0;
@@ -41,70 +40,47 @@ int TCPobj::createSocket() {
     return 1;
 }
 
-int TCPobj::bindSocket() {
+int TCPobj::connectToServer() {
     // Bind the socket to an IP address and port number
     sockaddr_in service{};
     service.sin_family = AF_INET;
-    service.sin_addr.s_addr = inet_addr(ip);  // Replace with your desired IP address
-    service.sin_port = htons(port);  // Choose a port number
+    service.sin_addr.s_addr = inet_addr(ip);
+    service.sin_port = htons(port);
 
-    // Use the bind function
-    if (bind(serverSocket, reinterpret_cast<SOCKADDR*>(&service), sizeof(service)) == SOCKET_ERROR) {
-        qDebug("TCPobj: bind() failed: %d", WSAGetLastError());
-        closeSocket();
+    // Use the connect function
+    if (::connect(clientSocket, reinterpret_cast<sockaddr*>(&service), sizeof(service)) == SOCKET_ERROR) {
+        qDebug("TCPobj: client: connect() - Failed to connect: %d", WSAGetLastError());
         WSACleanup();
         return 0;
     } else {
-        qDebug("TCPobj: bind() is OK!");
+        qDebug("TCPobj: client connect() is OK!");
+        qDebug("TCPobj: client can connect sending and receiving data...");
     }
     return 1;
 }
 
-int TCPobj::listenSocket() {
-    // Listen for incoming connections
-    if (listen(serverSocket, 1) == SOCKET_ERROR) {
-        qDebug("TCPobj: listen(): Error listening on socket: %d", WSAGetLastError());
-        return 0;
-    } else {
-        qDebug("TCPobj: listen() is OK! I'm waiting for new connections...");
-    }
-    // Accept incoming connections
-    SOCKET acceptSocket;
-    while(started()){
-        acceptSocket = accept(serverSocket, nullptr, nullptr);
-        // Check for successful connection
-        if (acceptSocket == INVALID_SOCKET) {
-            qDebug("TCPobj: accept failed: %d", WSAGetLastError());
-            WSACleanup();
+void TCPobj::receiveLoop() {
+    // Receiving data from the server
+    char receiveBuffer[10];
+    int rbyteCount;
+    while(!shtdwn) {
+        memset(receiveBuffer, 0, 10);
+        rbyteCount = recv(clientSocket, receiveBuffer, sizeof(receiveBuffer), 0);
+        if (rbyteCount <= 0) {
+            qDebug("TCPobj: client recv error:  %d", WSAGetLastError());
             break;
         } else {
-            qDebug("TCPobj: accept() is OK!");
+            qDebug("TCPobj: client received data: %s", receiveBuffer);
         }
-        auto tcpExchanger = new TCPexchanger(acceptSocket);
-        QObject::connect(tcpExchanger, &TCPexchanger::newToken,
-                         winWork, &WinWork::newToken, Qt::DirectConnection);
-        QObject::connect(winWork, &WinWork::freeClient,
-                         tcpExchanger, &TCPexchanger::freeClient, Qt::DirectConnection);
-        QObject::connect(tcpExchanger, &TCPexchanger::freeDone,
-                         winWork, &WinWork::freeDone, Qt::DirectConnection);
-        QObject::connect(tcpExchanger, &TCPexchanger::clearTCPexchanger,
-                         this, &TCPobj::clearTCPexchanger, Qt::DirectConnection);
-        newThread(this, tcpExchanger);
-        mutex.lock();
-        clientList->insert(tcpExchanger);
-        mutex.unlock();
-        qDebug("TCPobj: clientList size = %d", clientList->size());
     }
-    qDebug("TCPobj: server socket %d closed", acceptSocket);
-    return 1;
 }
 
 void TCPobj::process() {
-    while(!shtdwn){
-        if(!started()) continue;
-        serverSocket = INVALID_SOCKET;
+    while(!shtdwn) {
+        if(disconnected()) continue;
+        clientSocket = INVALID_SOCKET;
         fail = false;
-        switch(serverSocket){
+        switch(clientSocket){
             case INVALID_SOCKET:
                 fail = !initWinSock();
                 if(fail) break;
@@ -112,41 +88,39 @@ void TCPobj::process() {
                 fail = !createSocket();
                 if(fail) break;
             case 1:
-                fail = !bindSocket();
+                fail = !connectToServer();
                 if(fail) break;
             default:
-                fail = !listenSocket();
+                cnct = 2;
+                receiveLoop();
         }
-        stop();
+        disconnect();
     }
     emit finished();
 }
 
-void TCPobj::start(char* ip, uint16_t port) {
-    if(started()) return;
+void TCPobj::connect(char* ip, uint16_t port) {
+    if(connected()) return;
     setIP(ip);
     setPort(port);
-    strt = true;
+    cnct = 1;
 }
 
-void TCPobj::stop() {
-    if (!started()) return;
+void TCPobj::disconnect() {
+    if (cnct == 0) return;
     closeSocket();
-    strt = false;
-    winWork->showHiddenWindow();
+    cnct = 0;
+//    winWork->showHiddenWindow();
 }
 
 void TCPobj::shutdown() {
-    qDebug("TCPobj shutdown");
-    for(auto item: *clientList){
-        item->shutdown();
-    }
-    stop();
+    qDebug("TCPobj: shutdown");
+    disconnect();
     shtdwn = true;
 }
 
-bool TCPobj::started() const {
-    return strt;
+bool TCPobj::connected() const {
+    return cnct == 2;
 }
 
 TCPobj::~TCPobj() {
@@ -167,14 +141,49 @@ bool TCPobj::failed() const {
 }
 
 void TCPobj::closeSocket() {
-    if(serverSocket != INVALID_SOCKET){
-        closesocket(serverSocket);
+    if(clientSocket != INVALID_SOCKET){
+        closesocket(clientSocket);
     }
 }
 
-void TCPobj::clearTCPexchanger(TCPexchanger *tcpExchager) {
+
+bool TCPobj::sendMessage(QString message) const {
+    // Sending data to the server
+    int sbyteCount = send(clientSocket, message.toUtf8().data(), message.length(), 0);
+    if (sbyteCount == SOCKET_ERROR) {
+        qDebug("TCPobj: client send error:  %d", WSAGetLastError());
+        return false;
+    } else {
+        qDebug("TCPobj: client sent %d bytes", sbyteCount);
+    }
+    return true;
+}
+
+bool TCPobj::connecting() const {
+    return cnct == 1;
+}
+
+bool TCPobj::disconnected() const {
+    return cnct == 0;
+}
+
+void TCPobj::sendNewToken(const QString& key, const QString& wname) {
+    if(getSendFlag()) return;
+    if(sendMessage("key:" + key + ";wname:" + wname)){
+        setSendFlag(true);
+        qDebug("TCPobj: send new Token");
+    }
+}
+
+void TCPobj::setSendFlag(bool value) {
     mutex.lock();
-    clientList->erase(clientList->constFind(tcpExchager));
-    qDebug("TCPobj: clientList size = %d", clientList->size());
+    sendFlag = value;
     mutex.unlock();
+}
+
+bool TCPobj::getSendFlag() {
+    mutex.lock();
+    bool result = sendFlag;
+    mutex.unlock();
+    return result;
 }

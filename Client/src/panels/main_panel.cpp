@@ -2,28 +2,39 @@
 
 #include <QVBoxLayout>
 
-MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent),
-                                        tcpObj(new TCPobj(this)), updater(new Updater(this)) {
+MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), winWork(new WinWork(this)),
+                                        fileWork(new FileWork(this)), tcpObj(new TCPobj(this)),
+                                        updater(new Updater(this)) {
     this->setWindowTitle("WinHider TCP client");
-    this->resize(310, 100);
+    this->resize(310, 150);
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
     mainFrame->setLayout(mainLayout);
 
     comPanel = new ComPanel(mainFrame);
+    bindPanel = new BindPanel(mainFrame);
     connectButton = new QPushButton("connect", mainFrame);
     disconnectButton = new QPushButton("disconnect", mainFrame);
     statusLabel = new QLabel("status: disconnected", mainFrame);
     statusLabel->setAlignment(Qt::AlignCenter);
 
     mainLayout->addWidget(comPanel);
+    mainLayout->addWidget(bindPanel);
     mainLayout->addWidget(connectButton);
     mainLayout->addWidget(disconnectButton);
     mainLayout->addWidget(statusLabel);
+    readConfig();
 
     QObject::connect(connectButton, &QPushButton::clicked, this, &MainPanel::startAction);
     QObject::connect(disconnectButton, &QPushButton::clicked, this, &MainPanel::stopAction);
     QObject::connect(updater, &Updater::update, this, &MainPanel::updateAction);
+
+    QObject::connect(bindPanel->getBindButton(), &QPushButton::clicked, winWork, &WinWork::startBind);
+    QObject::connect(bindPanel->getBindButton(), &QPushButton::clicked, this, &MainPanel::lockAll);
+    QObject::connect(winWork, &WinWork::bindFinished, bindPanel, &BindPanel::bindFinished);
+    QObject::connect(winWork, &WinWork::bindFinished, this, &MainPanel::unlockAll);
+
+    QObject::connect(winWork, &WinWork::keyboardMouseAction, this, &MainPanel::keyboardMouseAction);
 
     this->setCentralWidget(mainFrame);
     this->show();
@@ -36,30 +47,83 @@ MainPanel::~MainPanel() {
     qDebug("MainPanel: destructor");
     tcpObj->shutdown();
     updater->shutdown();
-    comPanel->saveConfig();
+    saveConfig();
 }
 
 void MainPanel::startAction() {
-    qDebug("MainPanel: start action, server with address: %s:%d", comPanel->getIP(), comPanel->getPort());
-    //tcpObj->start(comPanel->getIP(), comPanel->getPort());
+    qDebug("MainPanel: connect action, server with address: %s:%d", comPanel->getIP(), comPanel->getPort());
+    tcpObj->connect(comPanel->getIP(), comPanel->getPort());
 }
 
 void MainPanel::stopAction() {
-    qDebug("MainPanel: stop action");
-    //tcpObj->stop();
+    qDebug("MainPanel: disconnect action");
+    tcpObj->disconnect();
 }
 
 void MainPanel::updateAction() {
-    if (tcpObj->started()) {
-        comPanel->lock();
+    if (tcpObj->connected()) {
         QString str = "status: connected to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
                                        ":" + QString::number(comPanel->getPort());
         statusLabel->setText(str);
+    } else if(tcpObj->connecting()) {
+        QString str = "status: try connecting to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
+                      ":" + QString::number(comPanel->getPort());
+        statusLabel->setText(str);
     } else {
-        comPanel->unlock();
         statusLabel->setText(tcpObj->failed()? "status: failed": "status: disconnected");
     }
-    connectButton->setEnabled(!tcpObj->started());
-    disconnectButton->setEnabled(tcpObj->started());
+    comPanel->lock(!tcpObj->disconnected() || lockFlag);
+    connectButton->setEnabled(!tcpObj->connected() && !lockFlag);
+    disconnectButton->setEnabled(tcpObj->connected() && !lockFlag);
+}
+
+void MainPanel::lockAll() {
+    lockFlag = true;
+    bindPanel->lock(lockFlag);
+    comPanel->lockAutoStart(lockFlag);
+}
+
+void MainPanel::unlockAll() {
+    lockFlag = false;
+    bindPanel->lock(lockFlag);
+    comPanel->lockAutoStart(lockFlag);
+}
+
+void MainPanel::readConfig() {
+    auto list = fileWork->readConfig().split(";");
+    if(list.size() != 5) {
+        qDebug("MainPanel: wrong config");
+        return;
+    }
+    for(auto item: list){
+        auto keyValue = item.split(":");
+        if(keyValue.size() != 2) break;
+        if(keyValue[0] == "ip"){
+            comPanel->setQIP(keyValue[1]);
+        } else if(keyValue[0] == "port"){
+            comPanel->setQPort(keyValue[1]);
+        } else if(keyValue[0] == "autostart"){
+            comPanel->setQAutostart(keyValue[1]);
+        } else if(keyValue[0] == "wname"){
+            bindPanel->setQWinName(keyValue[1]);
+        } else if(keyValue[0] == "key"){
+            bindPanel->setQKey(keyValue[1]);
+        }  else {
+            qDebug("MainPanel: wrong config");
+            break;
+        }
+    }
+    comPanel->getIP();
+    comPanel->getPort();
+}
+
+void MainPanel::saveConfig() {
+    fileWork->saveConfig(std::move("ip:" + comPanel->getQIP() + ";port:" + comPanel->getQPort() +
+                                   ";autostart:" + QString::number(comPanel->isAutostart()) +
+                                   ";wname:" + bindPanel->getQWinName() + ";key:" + bindPanel->getQKey()));
+}
+
+void MainPanel::keyboardMouseAction(const QString& keyName) {
+    tcpObj->sendNewToken(keyName, bindPanel->getQWinName());
 }
 

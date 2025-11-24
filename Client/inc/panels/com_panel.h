@@ -9,7 +9,6 @@
 
 class ComPanel: public QFrame{
 private:
-    FileWork *fileWork;
     QLineEdit *ipLineEdit;
     QLineEdit *portLineEdit;
     QCheckBox* autoStartCheckBox;
@@ -18,14 +17,15 @@ public:
 
     ~ComPanel() override;
 
-    void lock();
-    void unlock();
+    void lock(bool lockFlag);
+    void lockAutoStart(bool lockFlag);
     char *getIP();
     uint16_t getPort();
     QString getQIP();
+    void setQIP(const QString& value);
     QString getQPort();
+    void setQPort(const QString& value);
     uint16_t isAutostart();
-    void readConfig();
-    void saveConfig();
+    void setQAutostart(const QString& value);
 };
 #endif //COM_PANEL_H

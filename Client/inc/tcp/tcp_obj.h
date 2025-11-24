@@ -1,49 +1,50 @@
 #ifndef TCP_OBJ_H
 #define TCP_OBJ_H
 
-#include "hider/win_work.h"
-#include "tcp_exchanger.h"
-
-#include <QObject>
-#include <QSet>
-#include <QMutex>
 #include <winsock2.h>
+
+#include "tcp_exchanger.h"
+#include <QObject>
+#include <QMutex>
 
 
 class TCPobj : public QObject{
 Q_OBJECT
 private:
-    bool strt{false};
+    int cnct{0};
     bool fail{false};
     bool shtdwn{false};
+    bool sendFlag{false};
     char ip[17];
     uint16_t port;
-    SOCKET serverSocket{INVALID_SOCKET};
-    WinWork* winWork;
-    std::unique_ptr<QSet<TCPexchanger*>> clientList;
+    SOCKET clientSocket{INVALID_SOCKET};
     QMutex mutex;
 
     int initWinSock();
     int createSocket();
-    int bindSocket();
-    int listenSocket();
+    int connectToServer();
+    void receiveLoop();
     void closeSocket();
+    bool sendMessage(QString message) const;
 public:
+
     TCPobj(QObject *parent);
 
     ~TCPobj() override;
-
     void setIP(char *const newIp);
     void setPort(uint16_t newPort);
-    void start(char* ip, uint16_t port);
-    void stop();
+    void connect(char* ip, uint16_t port);
+    void disconnect();
     void shutdown();
-    bool started() const;
+    bool connecting() const;
+    bool connected() const;
+    bool disconnected() const;
     bool failed() const;
-
+    void sendNewToken(const QString& key, const QString& wname);
+    bool getSendFlag();
+    void setSendFlag(bool value);
 public slots:
     void process();
-    void clearTCPexchanger(TCPexchanger* tcpExchager);
 signals:
     void finished();
 };
