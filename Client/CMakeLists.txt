@@ -25,21 +25,15 @@ add_executable(
         src/panels/com_panel.cpp
         src/panels/main_panel.cpp
         src/misc/file_work.cpp
-        src/tcp/tcp_exchanger.cpp
         src/tcp/tcp_obj.cpp
-        src/hider/token.cpp
-        src/misc/updater.cpp
         src/hider/win_work.cpp
         #.h
         inc/panels/bind_panel.h
         inc/panels/com_panel.h
         inc/panels/main_panel.h
         inc/misc/file_work.h
-        inc/tcp/tcp_exchanger.h
         inc/tcp/tcp_obj.h
         inc/misc/thread_builder.h
-        inc/hider/token.h
-        inc/misc/updater.h
         inc/hider/win_work.h
 )
 

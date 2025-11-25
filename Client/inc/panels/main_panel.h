@@ -3,12 +3,12 @@
 
 #include "misc/thread_builder.h"
 #include "tcp/tcp_obj.h"
-#include "misc/updater.h"
 #include "com_panel.h"
 #include "bind_panel.h"
 
 #include <QMainWindow>
 #include <QFrame>
+#include <QTimer>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
@@ -24,7 +24,7 @@ private:
     TCPobj *tcpObj;
     ComPanel *comPanel;
     BindPanel *bindPanel;
-    Updater *updater;
+    QTimer* updateTimer;
     QPushButton *connectButton;
     QPushButton *disconnectButton;
     QLabel *statusLabel;
@@ -43,9 +43,9 @@ public slots:
 
     void unlockAll();
 
-    void startAction();
+    void connectAction();
 
-    void stopAction();
+    void disconnectAction();
 
     void keyboardMouseAction(const QString& keyName);
 };

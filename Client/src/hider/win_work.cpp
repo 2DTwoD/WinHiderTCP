@@ -32,7 +32,7 @@ void WinWork::LowLevelKeyBoardMouse(int nCode, WPARAM wParam, PKBDLLHOOKSTRUCT k
             emit ths->bindFinished(keyName);
             return;
         } else {
-            qDebug("WinWork: keyboard/Mouse action");
+            qDebug("WinWork: emit keyboard/Mouse action");
             emit ths->keyboardMouseAction(keyName);
         }
     }
@@ -48,6 +48,3 @@ void WinWork::startBind() {
     bindMode = true;
 }
 
-QString WinWork::getKeyCode(WPARAM wParam, PKBDLLHOOKSTRUCT keyInfo) {
-
-}

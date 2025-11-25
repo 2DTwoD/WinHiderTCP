@@ -3,7 +3,7 @@
 
 #include <windows.h>
 
-TCPobj::TCPobj(QObject *parent) {
+TCPobj::TCPobj(QObject *parent){
     newThread(parent, this);
 }
 
@@ -59,7 +59,7 @@ int TCPobj::connectToServer() {
     return 1;
 }
 
-void TCPobj::receiveLoop() {
+int TCPobj::receiveLoop() {
     // Receiving data from the server
     char receiveBuffer[10];
     int rbyteCount;
@@ -67,12 +67,21 @@ void TCPobj::receiveLoop() {
         memset(receiveBuffer, 0, 10);
         rbyteCount = recv(clientSocket, receiveBuffer, sizeof(receiveBuffer), 0);
         if (rbyteCount <= 0) {
-            qDebug("TCPobj: client recv error:  %d", WSAGetLastError());
-            break;
+            int lastError = WSAGetLastError();
+            qDebug("TCPobj: client recv error:  %d", lastError);
+            return lastError == WSAECONNABORTED;
         } else {
             qDebug("TCPobj: client received data: %s", receiveBuffer);
+            if(!strcmp(receiveBuffer, "OK") && sendFlagTimer->isActive()){
+                qDebug("TCPobj: stop sendFlagTimer");
+                emit stopSendFlagTimer();
+            } else if(!strcmp(receiveBuffer, "FREE")){
+                qDebug("TCPobj: reset sendFlag");
+                setSendFlag(false);
+            }
         }
     }
+    return 1;
 }
 
 void TCPobj::process() {
@@ -92,7 +101,7 @@ void TCPobj::process() {
                 if(fail) break;
             default:
                 cnct = 2;
-                receiveLoop();
+                fail = !receiveLoop();
         }
         disconnect();
     }
@@ -148,6 +157,7 @@ void TCPobj::closeSocket() {
 
 
 bool TCPobj::sendMessage(QString message) const {
+    if(!connected()) return false;
     // Sending data to the server
     int sbyteCount = send(clientSocket, message.toUtf8().data(), message.length(), 0);
     if (sbyteCount == SOCKET_ERROR) {
@@ -171,6 +181,10 @@ void TCPobj::sendNewToken(const QString& key, const QString& wname) {
     if(getSendFlag()) return;
     if(sendMessage("key:" + key + ";wname:" + wname)){
         setSendFlag(true);
+        sendFlagTimer = new QTimer(QThread::currentThread()->parent());
+        QObject::connect(sendFlagTimer, &QTimer::timeout, this, &TCPobj::resetSendFlag, Qt::DirectConnection);
+        QObject::connect(this, &TCPobj::stopSendFlagTimer, sendFlagTimer, &QTimer::stop);
+        sendFlagTimer->start(SEND_NEW_TOKEN_RETRY_MS);
         qDebug("TCPobj: send new Token");
     }
 }
@@ -186,4 +200,10 @@ bool TCPobj::getSendFlag() {
     bool result = sendFlag;
     mutex.unlock();
     return result;
+}
+
+void TCPobj::resetSendFlag() {
+    qDebug("TCPobj: reset sendFlag");
+    setSendFlag(false);
+    sendFlagTimer->stop();
 }

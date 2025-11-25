@@ -2,9 +2,11 @@
 
 #include <QVBoxLayout>
 
+#define UPDATER_TIME_MS 500
+
 MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), winWork(new WinWork(this)),
                                         fileWork(new FileWork(this)), tcpObj(new TCPobj(this)),
-                                        updater(new Updater(this)) {
+                                        updateTimer(new QTimer(this)) {
     this->setWindowTitle("WinHider TCP client");
     this->resize(310, 150);
     auto mainFrame = new QFrame(this);
@@ -25,37 +27,36 @@ MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), winWork(new WinWork
     mainLayout->addWidget(statusLabel);
     readConfig();
 
-    QObject::connect(connectButton, &QPushButton::clicked, this, &MainPanel::startAction);
-    QObject::connect(disconnectButton, &QPushButton::clicked, this, &MainPanel::stopAction);
-    QObject::connect(updater, &Updater::update, this, &MainPanel::updateAction);
-
+    QObject::connect(connectButton, &QPushButton::clicked, this, &MainPanel::connectAction);
+    QObject::connect(disconnectButton, &QPushButton::clicked, this, &MainPanel::disconnectAction);
     QObject::connect(bindPanel->getBindButton(), &QPushButton::clicked, winWork, &WinWork::startBind);
     QObject::connect(bindPanel->getBindButton(), &QPushButton::clicked, this, &MainPanel::lockAll);
     QObject::connect(winWork, &WinWork::bindFinished, bindPanel, &BindPanel::bindFinished);
     QObject::connect(winWork, &WinWork::bindFinished, this, &MainPanel::unlockAll);
-
     QObject::connect(winWork, &WinWork::keyboardMouseAction, this, &MainPanel::keyboardMouseAction);
+    QObject::connect(updateTimer, &QTimer::timeout, this, &MainPanel::updateAction);
+
 
     this->setCentralWidget(mainFrame);
     this->show();
     if(comPanel->isAutostart()){
-        startAction();
+        connectAction();
     }
+    updateTimer->start(UPDATER_TIME_MS);
 }
 
 MainPanel::~MainPanel() {
     qDebug("MainPanel: destructor");
     tcpObj->shutdown();
-    updater->shutdown();
     saveConfig();
 }
 
-void MainPanel::startAction() {
+void MainPanel::connectAction() {
     qDebug("MainPanel: connect action, server with address: %s:%d", comPanel->getIP(), comPanel->getPort());
     tcpObj->connect(comPanel->getIP(), comPanel->getPort());
 }
 
-void MainPanel::stopAction() {
+void MainPanel::disconnectAction() {
     qDebug("MainPanel: disconnect action");
     tcpObj->disconnect();
 }
@@ -124,6 +125,8 @@ void MainPanel::saveConfig() {
 }
 
 void MainPanel::keyboardMouseAction(const QString& keyName) {
+    qDebug("MainPanel: keyboard/mouse action");
+    if(keyName != bindPanel->getQKey()) return;
     tcpObj->sendNewToken(keyName, bindPanel->getQWinName());
 }
 

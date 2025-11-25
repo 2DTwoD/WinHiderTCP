@@ -3,9 +3,11 @@
 
 #include <winsock2.h>
 
-#include "tcp_exchanger.h"
 #include <QObject>
 #include <QMutex>
+#include <QTimer>
+
+#define SEND_NEW_TOKEN_RETRY_MS 2000
 
 
 class TCPobj : public QObject{
@@ -19,17 +21,18 @@ private:
     uint16_t port;
     SOCKET clientSocket{INVALID_SOCKET};
     QMutex mutex;
+    QTimer* sendFlagTimer;
 
     int initWinSock();
     int createSocket();
     int connectToServer();
-    void receiveLoop();
+    int receiveLoop();
     void closeSocket();
-    bool sendMessage(QString message) const;
+    bool getSendFlag();
+    void setSendFlag(bool value);
 public:
 
     TCPobj(QObject *parent);
-
     ~TCPobj() override;
     void setIP(char *const newIp);
     void setPort(uint16_t newPort);
@@ -41,11 +44,12 @@ public:
     bool disconnected() const;
     bool failed() const;
     void sendNewToken(const QString& key, const QString& wname);
-    bool getSendFlag();
-    void setSendFlag(bool value);
+    bool sendMessage(QString message) const;
 public slots:
     void process();
+    void resetSendFlag();
 signals:
+    void stopSendFlagTimer();
     void finished();
 };
 
