@@ -3,11 +3,11 @@
 
 #include "misc/thread_builder.h"
 #include "tcp/tcp_obj.h"
-#include "misc/updater.h"
 #include "com_panel.h"
 
 #include <QMainWindow>
 #include <QFrame>
+#include <QTimer>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
@@ -17,8 +17,8 @@ class MainPanel: public QMainWindow{
 Q_OBJECT
 private:
     TCPobj* tcpObj;
+    QTimer* updateTimer;
     ComPanel* comPanel;
-    Updater* updater;
     QPushButton* startButton;
     QPushButton* stopButton;
     QLabel* statusLabel;

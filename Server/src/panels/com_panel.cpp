@@ -11,7 +11,7 @@ ComPanel::ComPanel(QWidget *parent): QFrame(parent), fileWork(new FileWork(this)
 
     auto ipLabel = new QLabel("IP:", this);
     auto portLabel = new QLabel("Port:", this);
-    ipLineEdit = new QLineEdit("127.0.0.1", this);
+    ipLineEdit = new QLineEdit("0.0.0.0", this);
     portLineEdit = new QLineEdit("55555", this);
     portLineEdit->setFixedWidth(40);
     autoStartCheckBox = new QCheckBox("Autostart", this);

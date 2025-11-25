@@ -27,7 +27,6 @@ add_executable(
         src/tcp/tcp_exchanger.cpp
         src/tcp/tcp_obj.cpp
         src/hider/token.cpp
-        src/misc/updater.cpp
         src/hider/win_work.cpp
         #.h
         inc/panels/com_panel.h
@@ -37,7 +36,6 @@ add_executable(
         inc/tcp/tcp_obj.h
         inc/misc/thread_builder.h
         inc/hider/token.h
-        inc/misc/updater.h
         inc/hider/win_work.h
 )
 

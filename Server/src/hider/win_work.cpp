@@ -2,17 +2,8 @@
 
 WinWork::WinWork(QObject *parent): QObject(parent) {
     ths = this;
-    keyboardMouseHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelKeyBoardMouseProc, GetModuleHandle(nullptr), 0);
-}
-
-LRESULT CALLBACK WinWork::LowLevelKeyBoardMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
-    if (ths && token.isValid() && nCode == HC_ACTION) {
-        if (wParam == token.getKey()) {
-            qDebug("WinWork: Keyboard/Mouse action");
-            changeWindowVisible(true);
-        }
-    }
-    return CallNextHookEx(keyboardMouseHook, nCode, wParam, lParam);
+    keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyBoardProc, GetModuleHandle(nullptr), 0);
+    mouseHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandle(nullptr), 0);
 }
 
 BOOL CALLBACK WinWork::enumWindowCB(HWND window, const LPARAM lParam) {
@@ -45,10 +36,12 @@ void WinWork::changeWindowVisible(bool visible) {
     EnumWindows(&enumWindowCB, reinterpret_cast<LPARAM>(&visible));
 }
 
-void WinWork::newToken(Token tokenObj) {
+void WinWork::newToken(const Token& tokenObj, TCPexchanger* source) {
     qDebug("WinWork slot: newToken");
     if(token.isValid()) return;
-    token = std::move(tokenObj);
+    qDebug("WinWork slot: newToken: token accepted");
+    token = tokenObj;
+    emit tokenAccepted(source);
     changeWindowVisible(false);
 }
 
@@ -64,4 +57,32 @@ void WinWork::showHiddenWindow() {
 
 WinWork::~WinWork() {
     qDebug("WinWork: destructor");
+}
+
+LRESULT CALLBACK WinWork::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    LowLevelKeyBoardMouse(nCode, wParam, nullptr);
+    return CallNextHookEx(mouseHook, nCode, wParam, lParam);
+}
+
+LRESULT CALLBACK WinWork::LowLevelKeyBoardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    auto keyInfo = reinterpret_cast<PKBDLLHOOKSTRUCT>(lParam);
+    LowLevelKeyBoardMouse(nCode, wParam, keyInfo);
+    return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
+}
+
+void WinWork::LowLevelKeyBoardMouse(int nCode, WPARAM wParam, PKBDLLHOOKSTRUCT const &keyInfo) {
+//    if(keyInfo) qDebug("WinWork: keyName: %#04x, %#04x", keyInfo->vkCode, wParam);
+    if (ths && token.isValid() && nCode == HC_ACTION) {
+        QString keyName;
+        if(keyInfo && overlapWParamList.contains(wParam) && !ignoreKeyList.contains(keyInfo->vkCode)){
+            keyName = "k" + QString::number(keyInfo->vkCode, 16);
+        } else if(!keyInfo && !ignoreActionList.contains(wParam)){
+            keyName = "m" + QString::number(wParam, 16);
+        }
+        if(keyName.isEmpty()) return;
+        if (keyName == token.getKey()) {
+            qDebug("WinWork: keyboard/mouse action");
+            changeWindowVisible(true);
+        }
+    }
 }

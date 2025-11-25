@@ -2,8 +2,10 @@
 
 #include <QVBoxLayout>
 
-MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent),
-                                        tcpObj(new TCPobj(this)), updater(new Updater(this)) {
+#define UPDATER_TIME_MS 500
+
+MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), updateTimer(new QTimer(parent)),
+                                        tcpObj(new TCPobj(this)) {
     this->setWindowTitle("WinHider TCP server");
     this->resize(310, 100);
     auto mainFrame = new QFrame(this);
@@ -23,19 +25,20 @@ MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent),
 
     QObject::connect(startButton, &QPushButton::clicked, this, &MainPanel::startAction);
     QObject::connect(stopButton, &QPushButton::clicked, this, &MainPanel::stopAction);
-    QObject::connect(updater, &Updater::update, this, &MainPanel::updateAction);
+    QObject::connect(updateTimer, &QTimer::timeout, this, &MainPanel::updateAction);
+
 
     this->setCentralWidget(mainFrame);
     this->show();
     if(comPanel->isAutostart()){
         startAction();
     }
+    updateTimer->start(UPDATER_TIME_MS);
 }
 
 MainPanel::~MainPanel() {
     qDebug("MainPanel: destructor");
     tcpObj->shutdown();
-    updater->shutdown();
     comPanel->saveConfig();
 }
 

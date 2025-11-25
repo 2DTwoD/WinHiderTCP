@@ -1,6 +1,6 @@
 #include "hider/token.h"
 
-Token::Token(): valid(false), key(WM_NULL), wname("") {
+Token::Token(): valid(false), key(""), wname("") {
 }
 
 Token::Token(bool valid): Token() {
@@ -28,7 +28,7 @@ Token &Token::operator=(const Token &tokenObject) {
 Token &Token::operator=(Token &&tokenObject) noexcept {
     mutex.lock();
     valid = tokenObject.valid;
-    key = tokenObject.key;
+    key = std::move(tokenObject.key);
     wname = std::move(tokenObject.wname);
     mutex.unlock();
     return *this;
@@ -40,23 +40,15 @@ void Token::setValid(bool value) {
     mutex.unlock();
 }
 
-void Token::setKey(WPARAM value) {
+void Token::setKey(QString&& value) {
     mutex.lock();
-    key = value;
+    key = std::move(value);
     mutex.unlock();
 }
 
-void Token::setWName(QString &&value) {
+void Token::setWName(QString&& value) {
     mutex.lock();
     wname = std::move(value);
-    mutex.unlock();
-}
-
-void Token::setToken(bool valid, WPARAM key, QString &&wname) {
-    mutex.lock();
-    this->valid = valid;
-    this->key = key;
-    this->wname = std::move(wname);
     mutex.unlock();
 }
 
@@ -67,7 +59,7 @@ bool Token::isValid() {
     return result;
 }
 
-WPARAM Token::getKey() {
+QString Token::getKey() {
     mutex.lock();
     auto result = key;
     mutex.unlock();
@@ -82,7 +74,8 @@ QString Token::getName() {
 }
 
 void Token::print() {
-    qDebug("Token: print: valid: %d, key: %d, wname: %s", isValid(), getKey(), getName().toUtf8().data());
+    qDebug("Token: print: valid: %d, key: %d, wname: %s",
+           isValid(), getKey().toUtf8().data(), getName().toUtf8().data());
 }
 
 Token::~Token() {

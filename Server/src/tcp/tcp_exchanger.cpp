@@ -22,7 +22,8 @@ void TCPexchanger::process() {
         if(token.isValid()){
             if(sendToClient("OK")){
                 qDebug("TCPexchanger signal: newToken");
-                emit newToken(token);
+                accept = false;
+                emit newToken(token, this);
             }
         } else {
             sendToClient("BAD");
@@ -41,7 +42,7 @@ Token TCPexchanger::parseMessage(char *const message) {
     for(auto item: list){
         auto keyValue = item.split("=");
         if(keyValue[0] == "key"){
-            result.setKey(static_cast<WPARAM>(keyValue[1].toUInt()));
+            result.setKey(std::move(keyValue[1]));
         } else if(keyValue[0] == "wname"){
             result.setWName(std::move(keyValue[1]));
         } else {
@@ -49,8 +50,11 @@ Token TCPexchanger::parseMessage(char *const message) {
             break;
         }
     }
-    qDebug("TCPexchanger: parsed token: isValid: %d, key %d, wname %s",
-           result.isValid(), result.getKey(), result.getName().toUtf8().data());
+    if(result.getKey().size() > 2 && !QString("km").contains(result.getKey()[0])){
+        result.setValid(false);
+    }
+    qDebug("TCPexchanger: parsed token: isValid: %d, key %s, wname %s",
+           result.isValid(), result.getKey().toUtf8().data(), result.getName().toUtf8().data());
     return result;
 }
 
@@ -87,3 +91,11 @@ void TCPexchanger::closeSocket() {
     closesocket(acceptSocket);
 }
 
+void TCPexchanger::tokenAccepted(TCPexchanger *source) {
+    accept = source == this;
+    qDebug("TCPexchanger: client socket %d: token %saccepted", acceptSocket, accept? "": "not ");
+}
+
+bool TCPexchanger::accepted() {
+    return accept;
+}

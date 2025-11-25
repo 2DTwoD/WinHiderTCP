@@ -10,24 +10,23 @@ class Token{
 private:
     QMutex mutex;
     bool valid;
-    WPARAM key;
+    QString key;
     QString wname;
 public:
     Token();
 
     virtual ~Token();
 
-    Token(bool isValid);
+    explicit Token(bool isValid);
     Token(Token& tokenObject);
     Token(Token&& tokenObject) noexcept;
     Token& operator=(const Token& tokenObject);
     Token& operator=(Token&& tokenObject) noexcept ;
     void setValid(bool value);
-    void setKey(WPARAM value);
-    void setWName(QString &&value);
-    void setToken(bool valid, WPARAM key, QString &&wname);
+    void setKey(QString&& value);
+    void setWName(QString&& value);
     bool isValid();
-    WPARAM getKey();
+    QString getKey();
     QString getName();
     void print();
 };

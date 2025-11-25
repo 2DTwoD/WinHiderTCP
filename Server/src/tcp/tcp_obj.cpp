@@ -83,12 +83,19 @@ int TCPobj::listenSocket() {
         auto tcpExchanger = new TCPexchanger(acceptSocket);
         QObject::connect(tcpExchanger, &TCPexchanger::newToken,
                          winWork, &WinWork::newToken, Qt::DirectConnection);
+
         QObject::connect(winWork, &WinWork::freeClient,
                          tcpExchanger, &TCPexchanger::freeClient, Qt::DirectConnection);
+
         QObject::connect(tcpExchanger, &TCPexchanger::freeDone,
                          winWork, &WinWork::freeDone, Qt::DirectConnection);
+
         QObject::connect(tcpExchanger, &TCPexchanger::clearTCPexchanger,
                          this, &TCPobj::clearTCPexchanger, Qt::DirectConnection);
+
+        QObject::connect(winWork, &WinWork::tokenAccepted,
+                         tcpExchanger, &TCPexchanger::tokenAccepted, Qt::DirectConnection);
+
         newThread(this, tcpExchanger);
         mutex.lock();
         clientList->insert(tcpExchanger);
@@ -174,6 +181,10 @@ void TCPobj::closeSocket() {
 
 void TCPobj::clearTCPexchanger(TCPexchanger *tcpExchager) {
     mutex.lock();
+    if(tcpExchager->accepted()){
+        qDebug("!!!!");
+        winWork->showHiddenWindow();
+    }
     clientList->erase(clientList->constFind(tcpExchager));
     qDebug("TCPobj: clientList size = %d", clientList->size());
     mutex.unlock();
