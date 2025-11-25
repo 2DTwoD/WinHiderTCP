@@ -17,7 +17,7 @@ LRESULT CALLBACK WinWork::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPa
     return CallNextHookEx(mouseHook, nCode, wParam, lParam);
 }
 
-void WinWork::LowLevelKeyBoardMouse(int nCode, WPARAM wParam, PKBDLLHOOKSTRUCT keyInfo) {
+void WinWork::LowLevelKeyBoardMouse(int nCode, WPARAM wParam, const PKBDLLHOOKSTRUCT& keyInfo) {
     if (ths && nCode == HC_ACTION) {
         QString keyName;
         if(keyInfo && wParam == 0x100 && !ignoreKeyList.contains(keyInfo->vkCode)){

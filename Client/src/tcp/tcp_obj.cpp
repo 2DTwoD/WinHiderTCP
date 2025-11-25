@@ -119,7 +119,6 @@ void TCPobj::disconnect() {
     if (cnct == 0) return;
     closeSocket();
     cnct = 0;
-//    winWork->showHiddenWindow();
 }
 
 void TCPobj::shutdown() {
@@ -156,7 +155,7 @@ void TCPobj::closeSocket() {
 }
 
 
-bool TCPobj::sendMessage(QString message) const {
+bool TCPobj::sendMessage(const QString& message) const {
     if(!connected()) return false;
     // Sending data to the server
     int sbyteCount = send(clientSocket, message.toUtf8().data(), message.length(), 0);
@@ -164,7 +163,7 @@ bool TCPobj::sendMessage(QString message) const {
         qDebug("TCPobj: client send error:  %d", WSAGetLastError());
         return false;
     } else {
-        qDebug("TCPobj: client sent %d bytes", sbyteCount);
+        qDebug("TCPobj: client sent %d bytes, message: %s", sbyteCount, message.toUtf8().data());
     }
     return true;
 }
