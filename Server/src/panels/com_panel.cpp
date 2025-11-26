@@ -19,10 +19,12 @@ ComPanel::ComPanel(QWidget *parent): QFrame(parent), fileWork(new FileWork(this)
     QRegularExpression ipRE(R"(^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.){3}(25[0-5]|(2[0-4]|1\d|[1-9]|)\d)$)");
     auto ipValidator = new QRegularExpressionValidator(ipRE, this);
     ipLineEdit->setValidator(ipValidator);
+    ipLineEdit->setMaxLength(15);
 
     QRegularExpression portRE("\\d+");
     auto portValidator = new QRegularExpressionValidator(portRE, this);
     portLineEdit->setValidator(portValidator);
+    portLineEdit->setMaxLength(5);
 
     layout->addWidget(ipLabel);
     layout->addWidget(ipLineEdit);
@@ -30,16 +32,6 @@ ComPanel::ComPanel(QWidget *parent): QFrame(parent), fileWork(new FileWork(this)
     layout->addWidget(portLineEdit);
     layout->addWidget(autoStartCheckBox);
     readConfig();
-}
-
-void ComPanel::lock() {
-    ipLineEdit->setEnabled(false);
-    portLineEdit->setEnabled(false);
-}
-
-void ComPanel::unlock() {
-    ipLineEdit->setEnabled(true);
-    portLineEdit->setEnabled(true);
 }
 
 char *ComPanel::getIP() {
@@ -104,4 +96,9 @@ void ComPanel::saveConfig() {
 
 ComPanel::~ComPanel() {
     qDebug("ComPanel: destructor");
+}
+
+void ComPanel::lock(bool value) {
+    ipLineEdit->setEnabled(!value);
+    portLineEdit->setEnabled(!value);
 }

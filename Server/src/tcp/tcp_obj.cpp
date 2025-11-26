@@ -2,9 +2,8 @@
 #include "misc/thread_builder.h"
 
 #include <windows.h>
-#include <QThread>
 
-TCPobj::TCPobj(QObject *parent): winWork(new WinWork(this)), clientList(std::make_unique<QSet<TCPexchanger*>>()) {
+TCPobj::TCPobj(QObject *parent) {
     newThread(parent, this);
 }
 
@@ -80,27 +79,7 @@ int TCPobj::listenSocket() {
         } else {
             qDebug("TCPobj: accept() is OK!");
         }
-        auto tcpExchanger = new TCPexchanger(acceptSocket);
-        QObject::connect(tcpExchanger, &TCPexchanger::newToken,
-                         winWork, &WinWork::newToken, Qt::DirectConnection);
-
-        QObject::connect(winWork, &WinWork::freeClient,
-                         tcpExchanger, &TCPexchanger::freeClient, Qt::DirectConnection);
-
-        QObject::connect(tcpExchanger, &TCPexchanger::freeDone,
-                         winWork, &WinWork::freeDone, Qt::DirectConnection);
-
-        QObject::connect(tcpExchanger, &TCPexchanger::clearTCPexchanger,
-                         this, &TCPobj::clearTCPexchanger, Qt::DirectConnection);
-
-        QObject::connect(winWork, &WinWork::tokenAccepted,
-                         tcpExchanger, &TCPexchanger::tokenAccepted, Qt::DirectConnection);
-
-        newThread(this, tcpExchanger);
-        mutex.lock();
-        clientList->insert(tcpExchanger);
-        mutex.unlock();
-        qDebug("TCPobj: clientList size = %d", clientList->size());
+        emit newTCPexchanger(acceptSocket);
     }
     qDebug("TCPobj: server socket %d closed", acceptSocket);
     return 1;
@@ -108,7 +87,7 @@ int TCPobj::listenSocket() {
 
 void TCPobj::process() {
     while(!shtdwn){
-        if(!started()) continue;
+        if(stopped()) continue;
         serverSocket = INVALID_SOCKET;
         fail = false;
         switch(serverSocket){
@@ -122,6 +101,7 @@ void TCPobj::process() {
                 fail = !bindSocket();
                 if(fail) break;
             default:
+                strt = 2;
                 fail = !listenSocket();
         }
         stop();
@@ -130,30 +110,27 @@ void TCPobj::process() {
 }
 
 void TCPobj::start(char* ip, uint16_t port) {
-    if(started()) return;
+    if(!stopped()) return;
     setIP(ip);
     setPort(port);
-    strt = true;
+    strt = 1;
 }
 
 void TCPobj::stop() {
-    if (!started()) return;
+    if (stopped()) return;
     closeSocket();
-    strt = false;
-    winWork->showHiddenWindow();
+    strt = 0;
+    emit tcpObjStop();
 }
 
 void TCPobj::shutdown() {
     qDebug("TCPobj shutdown");
-    for(auto item: *clientList){
-        item->shutdown();
-    }
     stop();
     shtdwn = true;
 }
 
 bool TCPobj::started() const {
-    return strt;
+    return strt == 2;
 }
 
 TCPobj::~TCPobj() {
@@ -179,13 +156,12 @@ void TCPobj::closeSocket() {
     }
 }
 
-void TCPobj::clearTCPexchanger(TCPexchanger *tcpExchager) {
-    mutex.lock();
-    if(tcpExchager->accepted()){
-        qDebug("!!!!");
-        winWork->showHiddenWindow();
-    }
-    clientList->erase(clientList->constFind(tcpExchager));
-    qDebug("TCPobj: clientList size = %d", clientList->size());
-    mutex.unlock();
+bool TCPobj::starting() const {
+    return strt == 1;
 }
+
+bool TCPobj::stopped() const {
+    return strt == 0;
+}
+
+

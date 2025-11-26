@@ -18,8 +18,7 @@ public:
 
     ~ComPanel() override;
 
-    void lock();
-    void unlock();
+    void lock(bool value);
     char *getIP();
     uint16_t getPort();
     QString getQIP();

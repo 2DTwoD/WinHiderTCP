@@ -1,7 +1,7 @@
 #ifndef WIN_WORK_H
 #define WIN_WORK_H
 
-#include "hider/token.h"
+#include "misc/token.h"
 #include "tcp/tcp_exchanger.h"
 
 #include <winsock2.h>
@@ -9,10 +9,14 @@
 #include <QString>
 #include <QObject>
 
+struct WinNameVisible{
+    bool visible{false};
+    const QString& winName;
+};
+
 class WinWork: public QObject{
 Q_OBJECT
 private:
-    static inline Token token;
     static inline QList<uint16_t> ignoreKeyList= {0x20, 0x1B};
     static inline QList<uint16_t> overlapWParamList= {0x100, 0x104};
     static inline QList<uint16_t> ignoreActionList= {0x200, 0x201, 0x202, 0x204, 0x205};
@@ -24,20 +28,14 @@ private:
     static void LowLevelKeyBoardMouse(int nCode, WPARAM wParam, const PKBDLLHOOKSTRUCT& keyInfo);
     static BOOL CALLBACK enumWindowCB(HWND window, const LPARAM lParam);
     static void showHide(HWND window, bool visible);
-    static void changeWindowVisible(bool visible);
-
 public:
+
     explicit WinWork(QObject *parent);
     ~WinWork() override;
-    void showHiddenWindow();
-
-public slots:
-    void newToken(const Token& tokenObj, TCPexchanger* source);
-    void freeDone();
-
+    void changeWindowVisible(bool visible, const QString& winName);
 signals:
     void freeClient();
-    void tokenAccepted(TCPexchanger* source);
+    void keyboardMouseAction(const QString& keyName);
 };
 
 #endif //WIN_WORK_H

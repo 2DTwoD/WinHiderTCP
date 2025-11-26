@@ -1,7 +1,7 @@
 #ifndef TCP_EXCHANGER_H
 #define TCP_EXCHANGER_H
 
-#include "hider/token.h"
+#include "misc/token.h"
 
 #include <QObject>
 #include <winsock2.h>
@@ -25,14 +25,15 @@ public:
     void shutdown();
     void closeSocket();
     bool accepted();
+    void freeClient();
 public slots:
     void process();
-    void freeClient();
     void tokenAccepted(TCPexchanger* source);
+    void hiderBusy();
 signals:
-    void newToken(const Token& tokenObj, TCPexchanger* source);
+    void newToken(const Token& newToken, TCPexchanger *const sender);
     void freeDone();
-    void clearTCPexchanger(TCPexchanger* tcpExchager);
+    void deleteTCPexchanger(TCPexchanger *const tcpExchager);
     void finished();
 };
 

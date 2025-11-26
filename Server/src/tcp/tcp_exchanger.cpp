@@ -18,18 +18,18 @@ void TCPexchanger::process() {
         } else {
             qDebug("TCPexchanger: received data: %s", receiveBuffer);
         }
+        if(accepted()) continue;
         Token token = std::move(parseMessage(receiveBuffer));
         if(token.isValid()){
             if(sendToClient("OK")){
                 qDebug("TCPexchanger signal: newToken");
-                accept = false;
                 emit newToken(token, this);
             }
         } else {
             sendToClient("BAD");
         }
     }
-    emit clearTCPexchanger(this);
+    emit deleteTCPexchanger(this);
     closeSocket();
     qDebug("TCPexchanger: client socket %d closed", acceptSocket);
     emit finished();
@@ -71,9 +71,10 @@ bool TCPexchanger::sendToClient(const char* str) {
 }
 
 void TCPexchanger::freeClient() {
-    qDebug("TCPexchanger slot: freeClient");
-    if(sendToClient("FREE")){
-        qDebug("TCPexchanger signal: freeDone");
+    qDebug("TCPexchanger: freeClient");
+    if(accepted() && sendToClient("FREE")){
+        qDebug("TCPexchanger: freeDone");
+        accept = false;
         emit freeDone();
     }
 }
@@ -91,11 +92,16 @@ void TCPexchanger::closeSocket() {
     closesocket(acceptSocket);
 }
 
-void TCPexchanger::tokenAccepted(TCPexchanger *source) {
+void TCPexchanger::tokenAccepted(TCPexchanger* source) {
     accept = source == this;
     qDebug("TCPexchanger: client socket %d: token %saccepted", acceptSocket, accept? "": "not ");
 }
 
 bool TCPexchanger::accepted() {
     return accept;
+}
+
+void TCPexchanger::hiderBusy() {
+    if(accepted()) return;
+    sendToClient("BUSY");
 }

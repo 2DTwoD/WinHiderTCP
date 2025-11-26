@@ -1,7 +1,7 @@
 #ifndef TCP_OBJ_H
 #define TCP_OBJ_H
 
-#include "hider/win_work.h"
+
 #include "tcp_exchanger.h"
 
 #include <QObject>
@@ -13,15 +13,12 @@
 class TCPobj : public QObject{
 Q_OBJECT
 private:
-    bool strt{false};
+    int strt{0};
     bool fail{false};
     bool shtdwn{false};
     char ip[17];
     uint16_t port;
     SOCKET serverSocket{INVALID_SOCKET};
-    WinWork* winWork;
-    std::unique_ptr<QSet<TCPexchanger*>> clientList;
-    QMutex mutex;
 
     int initWinSock();
     int createSocket();
@@ -38,14 +35,17 @@ public:
     void start(char* ip, uint16_t port);
     void stop();
     void shutdown();
+    bool stopped() const;
+    bool starting() const;
     bool started() const;
     bool failed() const;
 
 public slots:
     void process();
-    void clearTCPexchanger(TCPexchanger* tcpExchager);
 signals:
     void finished();
+    void newTCPexchanger(SOCKET acceptSocket);
+    void tcpObjStop();
 };
 
 #endif //TCP_OBJ_H

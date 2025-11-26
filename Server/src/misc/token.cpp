@@ -1,4 +1,4 @@
-#include "hider/token.h"
+#include "misc/token.h"
 
 Token::Token(): valid(false), key(""), wname("") {
 }
