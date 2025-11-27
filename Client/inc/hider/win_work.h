@@ -10,6 +10,7 @@ class WinWork: public QObject{
 Q_OBJECT
 private:
     static inline QList<uint16_t> ignoreKeyList= {0x20, 0x1B};
+    static inline QList<uint16_t> overlapWParamList= {0x100, 0x104};
     static inline QList<uint16_t> ignoreActionList= {0x200, 0x201, 0x202, 0x204, 0x205};
     static inline bool bindMode{false};
     static inline WinWork *ths{nullptr};

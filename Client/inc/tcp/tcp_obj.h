@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QMutex>
 #include <QTimer>
+#include <QThread>
 
 #define SEND_NEW_TOKEN_RETRY_MS 2000
 
@@ -23,6 +24,7 @@ private:
     SOCKET clientSocket{INVALID_SOCKET};
     QMutex mutex;
     QTimer *sendFlagTimer;
+    QThread *currentThread;
 
     int initWinSock();
 
@@ -41,7 +43,7 @@ private:
     bool sendMessage(const QString& message) const;
 
 public:
-    TCPobj(QObject *parent);
+    TCPobj();
 
     ~TCPobj() override;
 
@@ -64,6 +66,8 @@ public:
     bool failed() const;
 
     void sendNewToken(const QString &key, const QString &wname);
+
+    QThread *getThread();
 
 public slots:
 

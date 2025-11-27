@@ -1,9 +1,9 @@
 #include "tcp/tcp_exchanger.h"
+#include "misc/thread_builder.h"
 
-#include <windows.h>
+#define DATA_LEN 100
 
-
-TCPexchanger::TCPexchanger(SOCKET acceptSocket): acceptSocket(acceptSocket){
+TCPexchanger::TCPexchanger(SOCKET acceptSocket): acceptSocket(acceptSocket), currentThread(newThread(this)){
 }
 
 void TCPexchanger::process() {
@@ -21,15 +21,13 @@ void TCPexchanger::process() {
         if(accepted()) continue;
         Token token = std::move(parseMessage(receiveBuffer));
         if(token.isValid()){
-            if(sendToClient("OK")){
-                qDebug("TCPexchanger signal: newToken");
-                emit newToken(token, this);
-            }
+            qDebug("TCPexchanger signal: newToken");
+            emit newToken(token, this);
         } else {
             sendToClient("BAD");
         }
     }
-    emit deleteTCPexchanger(this);
+    if(!shtdwn) emit deleteTCPexchanger(this);
     closeSocket();
     qDebug("TCPexchanger: client socket %d closed", acceptSocket);
     emit finished();
@@ -71,7 +69,6 @@ bool TCPexchanger::sendToClient(const char* str) {
 }
 
 void TCPexchanger::freeClient() {
-    qDebug("TCPexchanger: freeClient");
     if(accepted() && sendToClient("FREE")){
         qDebug("TCPexchanger: freeDone");
         accept = false;
@@ -81,6 +78,7 @@ void TCPexchanger::freeClient() {
 
 void TCPexchanger::shutdown() {
     qDebug("TCPexchanger: client socket %d shutdown", acceptSocket);
+    closeSocket();
     shtdwn = true;
 }
 
@@ -94,7 +92,10 @@ void TCPexchanger::closeSocket() {
 
 void TCPexchanger::tokenAccepted(TCPexchanger* source) {
     accept = source == this;
-    qDebug("TCPexchanger: client socket %d: token %saccepted", acceptSocket, accept? "": "not ");
+    if(accept && !sendToClient("OK")) {
+        emit notAccepted();
+        qDebug("TCPexchanger: client socket %d: token %saccepted", acceptSocket, accept? "": "not ");
+    }
 }
 
 bool TCPexchanger::accepted() {
@@ -104,4 +105,8 @@ bool TCPexchanger::accepted() {
 void TCPexchanger::hiderBusy() {
     if(accepted()) return;
     sendToClient("BUSY");
+}
+
+QThread *const TCPexchanger::getThread() {
+    return currentThread;
 }

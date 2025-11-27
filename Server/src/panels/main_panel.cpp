@@ -5,10 +5,10 @@
 
 #define UPDATER_TIME_MS 500
 
-MainPanel::MainPanel(QWidget *parent) : MainWindowWithTray(parent), updateTimer(new QTimer(this)),
-                                        tcpObj(new TCPobj(this)), winWork(new WinWork(this)),
-                                        clientList(std::make_unique<QSet<TCPexchanger*>>()) {
-    this->setWindowTitle("WinHider TCP server");
+MainPanel::MainPanel(QString title, QWidget *parent) : MainWindowWithTray(parent), updateTimer(new QTimer(this)),
+                                        tcpObj(new TCPobj()), winWork(new WinWork(this)),
+                                        clientList(std::make_unique<QSet<TCPexchanger*>>()), title(title) {
+    this->setWindowTitle(title);
     this->resize(310, 100);
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
@@ -38,11 +38,10 @@ MainPanel::MainPanel(QWidget *parent) : MainWindowWithTray(parent), updateTimer(
                      this, &MainPanel::newTCPexchanger, Qt::DirectConnection);
 
     QObject::connect(winWork, &WinWork::keyboardMouseAction,
-                     this, &MainPanel::keyboardMouseAction, Qt::DirectConnection);
+                     this, &MainPanel::keyboardMouseAction);
 
     QObject::connect(winWork, &WinWork::freeClient,
-                     this, &MainPanel::freeClient, Qt::DirectConnection);
-
+                     this, &MainPanel::freeClient);
 
     this->setCentralWidget(mainFrame);
 
@@ -58,8 +57,10 @@ MainPanel::~MainPanel() {
     qDebug("MainPanel: destructor");
     for(auto item: *clientList){
         item->shutdown();
+        item->getThread()->wait(1000);
     }
     tcpObj->shutdown();
+    tcpObj->getThread()->wait(1000);
     comPanel->saveConfig();
 }
 
@@ -75,12 +76,14 @@ void MainPanel::stopAction() {
 
 void MainPanel::updateAction() {
     if(tcpObj->started()) {
+        setIcon(token.isValid()? ICON_HIDED: ICON_CONNECTED);
         statusLabel->setText("status: started in address: " + QString::fromUtf8(comPanel->getIP()) +
                              ":" + QString::number(comPanel->getPort()));
     } else if(tcpObj->starting()) {
         statusLabel->setText("status: try starting in address: " + QString::fromUtf8(comPanel->getIP()) +
                              ":" + QString::number(comPanel->getPort()));
     } else {
+        setIcon(ICON_DISCONNECTED);
         statusLabel->setText(tcpObj->failed() ? "status: failed" : "status: stopped");
     }
     comPanel->lock(!tcpObj->stopped());
@@ -94,18 +97,20 @@ void MainPanel::newTCPexchanger(SOCKET acceptSocket) {
                      this, &MainPanel::newToken, Qt::DirectConnection);
 
     QObject::connect(tcpExchanger, &TCPexchanger::freeDone,
-                     this, &MainPanel::freeDone, Qt::DirectConnection);
+                     this, &MainPanel::freeDone);
 
     QObject::connect(tcpExchanger, &TCPexchanger::deleteTCPexchanger,
                      this, &MainPanel::deleteTCPexchanger, Qt::DirectConnection);
 
     QObject::connect(this, &MainPanel::tokenAccepted,
-                     tcpExchanger, &TCPexchanger::tokenAccepted, Qt::DirectConnection);
+                     tcpExchanger, &TCPexchanger::tokenAccepted);
 
     QObject::connect(this, &MainPanel::hiderBusy,
-                     tcpExchanger, &TCPexchanger::hiderBusy, Qt::DirectConnection);
+                     tcpExchanger, &TCPexchanger::hiderBusy);
 
-    newThread(this, tcpExchanger);
+    QObject::connect(tcpExchanger, &TCPexchanger::notAccepted,
+                     this, &MainPanel::resetTokenAndShowWindow);
+
     clientListMutex.lock();
     clientList->insert(tcpExchanger);
     clientListMutex.unlock();
@@ -134,14 +139,17 @@ void MainPanel::keyboardMouseAction(const QString &keyName) {
 
 void MainPanel::newToken(const Token& newToken, TCPexchanger *const sender) {
     qDebug("WinWork: newToken");
+
     if(token.isValid()){
         qDebug("WinWork: emit busy");
         emit hiderBusy();
         return;
     }
+    newTokenMutex.lock();
     token = newToken;
     qDebug("WinWork: emit token accepted");
     emit tokenAccepted(sender);
+    newTokenMutex.unlock();
     changeWindowVisible(false);
 }
 
@@ -151,8 +159,8 @@ void MainPanel::deleteTCPexchanger(TCPexchanger *const tcpExchager) {
         resetTokenAndShowWindow();
     }
     clientList->erase(clientList->constFind(tcpExchager));
-    qDebug("MainPanel: clientList size = %d", clientList->size());
     clientListMutex.unlock();
+    qDebug("MainPanel: clientList size = %d", clientList->size());
 }
 
 void MainPanel::tcpObjStop() {
@@ -160,9 +168,11 @@ void MainPanel::tcpObjStop() {
 }
 
 void MainPanel::freeClient() {
-    for(auto item : *clientList){
+    clientListMutex.lock();
+    for(auto item: *clientList){
         item->freeClient();
     }
+    clientListMutex.unlock();
 }
 
 void MainPanel::resetTokenAndShowWindow() {

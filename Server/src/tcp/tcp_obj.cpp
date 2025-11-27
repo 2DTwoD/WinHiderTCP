@@ -1,10 +1,7 @@
 #include "tcp/tcp_obj.h"
 #include "misc/thread_builder.h"
 
-#include <windows.h>
-
-TCPobj::TCPobj(QObject *parent) {
-    newThread(parent, this);
+TCPobj::TCPobj(): currentThread(newThread(this)) {
 }
 
 int TCPobj::initWinSock() {
@@ -162,6 +159,10 @@ bool TCPobj::starting() const {
 
 bool TCPobj::stopped() const {
     return strt == 0;
+}
+
+QThread *const TCPobj::getThread() const {
+    return currentThread;
 }
 
 

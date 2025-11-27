@@ -4,12 +4,12 @@
 #include <QThread>
 
 template <typename T>
-QThread* newThread(QObject *parent, T *threadObj, bool start = true){
+QThread* newThread(T *threadObj, bool start = true){
     if(!std::is_base_of<QObject, T>::value){
         qDebug("newThread: incoming object is not a QObject");
         return nullptr;
     }
-    auto thread = new QThread(parent);
+    auto thread = new QThread();
     threadObj->moveToThread(thread);
     QObject::connect(thread, &QThread::started, threadObj, &T::process, Qt::DirectConnection);
     QObject::connect(threadObj, &T::finished, thread, &QThread::quit, Qt::DirectConnection);

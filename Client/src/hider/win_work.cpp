@@ -20,7 +20,7 @@ LRESULT CALLBACK WinWork::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPa
 void WinWork::LowLevelKeyBoardMouse(int nCode, WPARAM wParam, const PKBDLLHOOKSTRUCT& keyInfo) {
     if (ths && nCode == HC_ACTION) {
         QString keyName;
-        if(keyInfo && wParam == 0x100 && !ignoreKeyList.contains(keyInfo->vkCode)){
+        if(keyInfo && overlapWParamList.contains(wParam) && !ignoreKeyList.contains(keyInfo->vkCode)){
             keyName = "k" + QString::number(keyInfo->vkCode, 16);
         } else if(!keyInfo && !ignoreActionList.contains(wParam)){
             keyName = "m" + QString::number(wParam, 16);

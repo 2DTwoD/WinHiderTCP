@@ -1,31 +1,26 @@
 #include "panels/main_window_with_tray.h"
 
-#include <QWidget>
-#include <QMainWindow>
 #include <QMenu>
 
 MainWindowWithTray::MainWindowWithTray(QWidget *parent): QMainWindow(parent), trayIcon(new QSystemTrayIcon(this)) {
-//    setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-    // Tray icon menu
+    setWindowFlags(Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+
     auto menu = this->createMenu();
     this->trayIcon->setContextMenu(menu);
 
-    // App icon
-    auto appIcon = QIcon("eye.png");
-    this->trayIcon->setIcon(appIcon);
-    this->setWindowIcon(appIcon);
+    disconnectedIcon = QIcon("pics/opened_eye_black.png");
+    connectedIcon = QIcon("pics/opened_eye_white.png");
+    hidedIcon = QIcon("pics/closed_eye_white.png");
+    setIcon(ICON_DISCONNECTED);
 
-    // Displaying the tray icon
-    this->trayIcon->show();     // Note: without explicitly calling show(), QSystemTrayIcon::activated signal will never be emitted!
+    this->trayIcon->show();
 
-    // Interaction
     QObject::connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindowWithTray::iconActivated);
 }
 
 QMenu* MainWindowWithTray::createMenu()
 {
-    // App can exit via Quit menu
-    auto quitAction = new QAction("&Quit", this);
+    auto quitAction = new QAction("&quit", this);
     QObject::connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 
     auto menu = new QMenu(this);
@@ -39,20 +34,32 @@ void MainWindowWithTray::iconActivated(QSystemTrayIcon::ActivationReason reason_
     switch (reason_) {
         case QSystemTrayIcon::Trigger:
             show();
+            setWindowState( (windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
+            activateWindow();
             break;
         default:
             ;
     }
 }
 
-
-void MainWindowWithTray::closeEvent(QCloseEvent *event)
-{
-//    event->ignore();
-//    hide();
-}
-
 void MainWindowWithTray::hideEvent(QHideEvent *event) {
     event->ignore();
     hide();
+}
+
+void MainWindowWithTray::setIcon(IconType iconType) {
+    switch (iconType) {
+        case ICON_DISCONNECTED:
+            this->trayIcon->setIcon(disconnectedIcon);
+            this->setWindowIcon(disconnectedIcon);
+            break;
+        case ICON_CONNECTED:
+            this->trayIcon->setIcon(connectedIcon);
+            this->setWindowIcon(connectedIcon);
+            break;
+        case ICON_HIDED:
+            this->trayIcon->setIcon(hidedIcon);
+            this->setWindowIcon(hidedIcon);
+            break;
+    }
 }

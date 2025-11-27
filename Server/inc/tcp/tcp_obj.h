@@ -1,12 +1,10 @@
 #ifndef TCP_OBJ_H
 #define TCP_OBJ_H
 
-
 #include "tcp_exchanger.h"
 
 #include <QObject>
-#include <QSet>
-#include <QMutex>
+#include <QThread>
 #include <winsock2.h>
 
 
@@ -19,6 +17,7 @@ private:
     char ip[17];
     uint16_t port;
     SOCKET serverSocket{INVALID_SOCKET};
+    QThread* currentThread;
 
     int initWinSock();
     int createSocket();
@@ -26,7 +25,7 @@ private:
     int listenSocket();
     void closeSocket();
 public:
-    TCPobj(QObject *parent);
+    TCPobj();
 
     ~TCPobj() override;
 
@@ -39,6 +38,7 @@ public:
     bool starting() const;
     bool started() const;
     bool failed() const;
+    QThread *const getThread() const;
 
 public slots:
     void process();

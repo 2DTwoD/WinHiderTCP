@@ -2,7 +2,6 @@
 #define WIN_WORK_H
 
 #include "misc/token.h"
-#include "tcp/tcp_exchanger.h"
 
 #include <winsock2.h>
 #include <windows.h>

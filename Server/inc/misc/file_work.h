@@ -10,6 +10,7 @@ public:
     ~FileWork() override;
 
     QString readConfig();
+
     void saveConfig(QString&& saveLine);
 };
 

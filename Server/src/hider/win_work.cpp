@@ -27,8 +27,6 @@ void WinWork::showHide(HWND window, bool visible) {
         if(!IsWindowVisible(window)) {
             SetForegroundWindow(window);
         }
-        qDebug("WinWork signal: freeClient");
-        emit ths->freeClient();
     } else {
         ShowWindow(window, SW_HIDE);
     }
@@ -36,7 +34,10 @@ void WinWork::showHide(HWND window, bool visible) {
 
 void WinWork::changeWindowVisible(bool visible, const QString& winName) {
     WinNameVisible pars = {visible, winName};
-    EnumWindows(&enumWindowCB, reinterpret_cast<LPARAM>(&pars));
+    if(EnumWindows(&enumWindowCB, reinterpret_cast<LPARAM>(&pars)) || visible){
+        qDebug("WinWork signal: freeClient");
+        emit ths->freeClient();
+    };
 }
 
 

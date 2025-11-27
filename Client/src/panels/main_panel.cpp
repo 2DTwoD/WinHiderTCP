@@ -5,7 +5,7 @@
 #define UPDATER_TIME_MS 500
 
 MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), winWork(new WinWork(this)),
-                                        fileWork(new FileWork(this)), tcpObj(new TCPobj(this)),
+                                        fileWork(new FileWork(this)), tcpObj(new TCPobj()),
                                         updateTimer(new QTimer(this)) {
     this->setWindowTitle("WinHider TCP client");
     this->resize(310, 150);
@@ -48,6 +48,7 @@ MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), winWork(new WinWork
 MainPanel::~MainPanel() {
     qDebug("MainPanel: destructor");
     tcpObj->shutdown();
+    tcpObj->getThread()->wait(1000);
     saveConfig();
 }
 
@@ -108,8 +109,10 @@ void MainPanel::readConfig() {
         } else if(keyValue[0] == "wname"){
             bindPanel->setQWinName(keyValue[1]);
         } else if(keyValue[0] == "key"){
-            bindPanel->setQKey(keyValue[1]);
-        }  else {
+            if(keyValue[1].size() > 1 && QString("km").contains(keyValue[1][0])){
+                bindPanel->setQKey(keyValue[1]);
+            }
+        } else {
             qDebug("MainPanel: wrong config");
             break;
         }

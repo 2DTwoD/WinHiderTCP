@@ -3,8 +3,6 @@
 
 #include <QString>
 #include <QMutex>
-#include <winsock2.h>
-
 
 class Token{
 private:

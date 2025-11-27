@@ -8,14 +8,10 @@
 #include "panels/main_window_with_tray.h"
 
 #include <QMainWindow>
-#include <QFrame>
 #include <QTimer>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
-#include <QCheckBox>
 #include <QSet>
-#include <QCloseEvent>
 
 class MainPanel: public MainWindowWithTray{
 Q_OBJECT
@@ -25,7 +21,9 @@ private:
     WinWork *winWork;
     QTimer *updateTimer;
     QMutex clientListMutex;
+    QMutex newTokenMutex;
     Token token;
+    QString title;
 
     std::unique_ptr<QSet<TCPexchanger *>> clientList;
 
@@ -36,16 +34,16 @@ private:
 
     void changeWindowVisible(bool value);
 
-    void resetTokenAndShowWindow();
-
 public:
-    explicit MainPanel(QWidget *parent = nullptr);
 
+    explicit MainPanel(QString title = "WinHider TCP server", QWidget *parent = nullptr);
     ~MainPanel() override;
 
     void updateAction();
 
 public slots:
+
+    void resetTokenAndShowWindow();
 
     void startAction();
 

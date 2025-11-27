@@ -6,9 +6,6 @@
 #include <QObject>
 #include <winsock2.h>
 
-#define DATA_LEN 200
-
-//TCPexchanger
 class TCPexchanger : public QObject {
     Q_OBJECT
 private:
@@ -16,6 +13,7 @@ private:
     Token parseMessage(char *const message);
     bool shtdwn{false};
     bool accept{false};
+    QThread *currentThread;
 public:
     explicit TCPexchanger(SOCKET acceptSocket = SOCKET_ERROR);
 
@@ -26,6 +24,7 @@ public:
     void closeSocket();
     bool accepted();
     void freeClient();
+    QThread *const getThread();
 public slots:
     void process();
     void tokenAccepted(TCPexchanger* source);
@@ -33,6 +32,7 @@ public slots:
 signals:
     void newToken(const Token& newToken, TCPexchanger *const sender);
     void freeDone();
+    void notAccepted();
     void deleteTCPexchanger(TCPexchanger *const tcpExchager);
     void finished();
 };

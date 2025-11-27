@@ -3,8 +3,7 @@
 
 #include <windows.h>
 
-TCPobj::TCPobj(QObject *parent){
-    newThread(parent, this);
+TCPobj::TCPobj(): currentThread(newThread(this)){
 }
 
 int TCPobj::initWinSock() {
@@ -205,4 +204,8 @@ void TCPobj::resetSendFlag() {
     qDebug("TCPobj: reset sendFlag");
     setSendFlag(false);
     sendFlagTimer->stop();
+}
+
+QThread *TCPobj::getThread() {
+    return currentThread;
 }
