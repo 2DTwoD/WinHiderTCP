@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <QMutex>
 #include <winsock2.h>
 
 
@@ -18,12 +19,16 @@ private:
     uint16_t port;
     SOCKET serverSocket{INVALID_SOCKET};
     QThread* currentThread;
+    QMutex mutex;
 
     int initWinSock();
     int createSocket();
     int bindSocket();
     int listenSocket();
     void closeSocket();
+    int getStrt();
+    void setStrt(int value);
+
 public:
     TCPobj();
 
@@ -34,11 +39,11 @@ public:
     void start(char* ip, uint16_t port);
     void stop();
     void shutdown();
-    bool stopped() const;
-    bool starting() const;
-    bool started() const;
-    bool failed() const;
-    QThread *const getThread() const;
+    bool stopped();
+    bool starting();
+    bool started();
+    bool failed();
+    QThread *const getThread();
 
 public slots:
     void process();

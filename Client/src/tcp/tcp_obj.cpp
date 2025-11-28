@@ -101,7 +101,7 @@ void TCPobj::process() {
                 fail = !connectToServer();
                 if(fail) break;
             default:
-                cnct = 2;
+                setCnct(2);
                 fail = !receiveLoop();
         }
         disconnect();
@@ -113,13 +113,13 @@ void TCPobj::connect(char* ip, uint16_t port) {
     if(connected()) return;
     setIP(ip);
     setPort(port);
-    cnct = 1;
+    setCnct(1);
 }
 
 void TCPobj::disconnect() {
-    if (cnct == 0) return;
+    if (disconnected()) return;
     closeSocket();
-    cnct = 0;
+    setCnct(0);
 }
 
 void TCPobj::shutdown() {
@@ -128,8 +128,8 @@ void TCPobj::shutdown() {
     shtdwn = true;
 }
 
-bool TCPobj::connected() const {
-    return cnct == 2;
+bool TCPobj::connected() {
+    return getCnct() == 2;
 }
 
 TCPobj::~TCPobj() {
@@ -145,7 +145,7 @@ void TCPobj::setPort(uint16_t newPort) {
     port = newPort;
 }
 
-bool TCPobj::failed() const {
+bool TCPobj::failed() {
     return fail;
 }
 
@@ -156,7 +156,7 @@ void TCPobj::closeSocket() {
 }
 
 
-bool TCPobj::sendMessage(const QString& message) const {
+bool TCPobj::sendMessage(const QString& message) {
     if(!connected()) return false;
     // Sending data to the server
     int sbyteCount = send(clientSocket, message.toUtf8().data(), message.length(), 0);
@@ -169,12 +169,12 @@ bool TCPobj::sendMessage(const QString& message) const {
     return true;
 }
 
-bool TCPobj::connecting() const {
-    return cnct == 1;
+bool TCPobj::connecting() {
+    return getCnct() == 1;
 }
 
-bool TCPobj::disconnected() const {
-    return cnct == 0;
+bool TCPobj::disconnected() {
+    return getCnct() == 0;
 }
 
 void TCPobj::sendNewToken(const QString& key, const QString& wname) {
@@ -214,4 +214,17 @@ QThread *TCPobj::getThread() {
 
 bool TCPobj::isBusy() {
     return sendFlagTimer && sendFlagTimer->isActive();
+}
+
+int TCPobj::getCnct() {
+    mutex.lock();
+    int result = cnct;
+    mutex.unlock();
+    return result;
+}
+
+void TCPobj::setCnct(int value) {
+    mutex.lock();
+    cnct = value;
+    mutex.unlock();
 }

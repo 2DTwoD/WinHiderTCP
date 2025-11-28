@@ -36,9 +36,10 @@ MainPanel::MainPanel(QString title, QWidget *parent) : MainWindowWithTray(parent
 
 
     this->setCentralWidget(mainFrame);
-    this->show();
     if(comPanel->isAutostart()){
         connectAction();
+    } else {
+        this->show();
     }
     updateTimer->start(UPDATER_TIME_MS);
 }
@@ -88,7 +89,7 @@ void MainPanel::updateAction() {
     statusLabel->setText(status);
     comPanel->lock(!tcpObj->disconnected() || lockFlag);
     connectButton->setEnabled(!tcpObj->connected() && !lockFlag);
-    disconnectButton->setEnabled(tcpObj->connected() && !lockFlag);
+    disconnectButton->setEnabled(!tcpObj->disconnected() && !lockFlag);
     lock(WinWork::binding() || tcpObj->isBusy());
 }
 

@@ -98,7 +98,7 @@ void TCPobj::process() {
                 fail = !bindSocket();
                 if(fail) break;
             default:
-                strt = 2;
+                setStrt(2);
                 fail = !listenSocket();
         }
         stop();
@@ -110,13 +110,14 @@ void TCPobj::start(char* ip, uint16_t port) {
     if(!stopped()) return;
     setIP(ip);
     setPort(port);
-    strt = 1;
+    setStrt(1);
+    qDebug("strt: %d", getStrt());
 }
 
 void TCPobj::stop() {
     if (stopped()) return;
     closeSocket();
-    strt = 0;
+    setStrt(0);
     emit tcpObjStop();
 }
 
@@ -126,8 +127,8 @@ void TCPobj::shutdown() {
     shtdwn = true;
 }
 
-bool TCPobj::started() const {
-    return strt == 2;
+bool TCPobj::started() {
+    return getStrt() == 2;
 }
 
 TCPobj::~TCPobj() {
@@ -143,7 +144,7 @@ void TCPobj::setPort(uint16_t newPort) {
     port = newPort;
 }
 
-bool TCPobj::failed() const {
+bool TCPobj::failed() {
     return fail;
 }
 
@@ -153,16 +154,29 @@ void TCPobj::closeSocket() {
     }
 }
 
-bool TCPobj::starting() const {
-    return strt == 1;
+bool TCPobj::starting() {
+    return getStrt() == 1;
 }
 
-bool TCPobj::stopped() const {
-    return strt == 0;
+bool TCPobj::stopped() {
+    return getStrt() == 0;
 }
 
-QThread *const TCPobj::getThread() const {
+QThread *const TCPobj::getThread() {
     return currentThread;
+}
+
+int TCPobj::getStrt() {
+    mutex.lock();
+    int result = strt;
+    mutex.unlock();
+    return result;
+}
+
+void TCPobj::setStrt(int value) {
+    mutex.lock();
+    strt = value;
+    mutex.unlock();
 }
 
 

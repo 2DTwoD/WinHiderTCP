@@ -46,7 +46,7 @@ char *ComPanel::getIP() {
         }
         item.toUShort(&ok);
     }
-    if(!ok) ipLineEdit->setText("127.0.0.1");
+    if(!ok) ipLineEdit->setText("0.0.0.0");
 
     return ipLineEdit->text().toLocal8Bit().data();
 }

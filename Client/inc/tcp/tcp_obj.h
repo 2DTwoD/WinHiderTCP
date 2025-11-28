@@ -14,8 +14,8 @@ Q_OBJECT
 
 private:
     int cnct{0};
-    bool fail{false};
     bool shtdwn{false};
+    bool fail{false};
     bool sendFlag{false};
     char ip[17];
     uint16_t port;
@@ -36,7 +36,11 @@ private:
 
     void setSendFlag(bool value);
 
-    bool sendMessage(const QString& message) const;
+    int getCnct();
+
+    void setCnct(int value);
+
+    bool sendMessage(const QString& message);
 
 public:
 
@@ -53,13 +57,13 @@ public:
 
     void shutdown();
 
-    bool connecting() const;
+    bool connecting();
 
-    bool connected() const;
+    bool connected();
 
-    bool disconnected() const;
+    bool disconnected();
 
-    bool failed() const;
+    bool failed();
 
     void sendNewToken(const QString &key, const QString &wname);
 
