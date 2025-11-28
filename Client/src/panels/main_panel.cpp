@@ -90,7 +90,7 @@ void MainPanel::updateAction() {
     comPanel->lock(!tcpObj->disconnected() || lockFlag);
     connectButton->setEnabled(!tcpObj->connected() && !lockFlag);
     disconnectButton->setEnabled(!tcpObj->disconnected() && !lockFlag);
-    lock(WinWork::binding() || tcpObj->isBusy());
+    lock(WinWork::binding() || tcpObj->getSendFlag());
 }
 
 

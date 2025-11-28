@@ -179,7 +179,7 @@ bool TCPobj::disconnected() {
 
 void TCPobj::sendNewToken(const QString& key, const QString& wname) {
     if(getSendFlag()) return;
-    if(sendMessage("key:" + key + ";wname:" + wname)){
+    if(sendMessage("key=" + key + ";wname=" + wname)){
         setSendFlag(true);
         sendFlagTimer = new QTimer(QThread::currentThread()->parent());
         QObject::connect(sendFlagTimer, &QTimer::timeout, this, &TCPobj::resetSendFlag, Qt::DirectConnection);

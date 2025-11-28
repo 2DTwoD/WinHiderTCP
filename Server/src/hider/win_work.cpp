@@ -8,10 +8,12 @@ WinWork::WinWork(QObject *parent): QObject(parent) {
 
 BOOL CALLBACK WinWork::enumWindowCB(HWND window, const LPARAM lParam) {
     auto pars = *reinterpret_cast<WinNameVisible*>(lParam);
-    char curName[100];
+    wchar_t curName[100];
     memset(curName, 0, 100);
-    GetWindowTextA(window, curName, sizeof(curName));
-    auto qCurName = QString::fromUtf8(curName, strlen(curName));
+    GetWindowTextW(window, curName, wcslen(curName));
+    auto qCurName = QString::fromWCharArray(curName);
+    qDebug("WinWork: window compare: curName: %s, targetName: %s",
+           qCurName.toUtf8().data(), pars.winName.toUtf8().data());
     if (qCurName.contains(pars.winName, Qt::CaseInsensitive)){
         qDebug("WinWork: window compare: curName: %s, targetName: %s",
                qCurName.toUtf8().data(), pars.winName.toUtf8().data());
