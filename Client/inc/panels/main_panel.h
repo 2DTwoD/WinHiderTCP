@@ -5,6 +5,7 @@
 #include "tcp/tcp_obj.h"
 #include "com_panel.h"
 #include "bind_panel.h"
+#include "main_window_with_tray.h"
 
 #include <QMainWindow>
 #include <QFrame>
@@ -14,11 +15,12 @@
 #include <QLabel>
 #include <QCheckBox>
 
-class MainPanel: public QMainWindow {
+class MainPanel: public MainWindowWithTray {
 Q_OBJECT
 
 private:
     bool lockFlag{false};
+    QString title;
     WinWork *winWork;
     FileWork *fileWork;
     TCPobj *tcpObj;
@@ -31,17 +33,15 @@ private:
     void readConfig();
     void saveConfig();
 public:
-    explicit MainPanel(QWidget *parent = nullptr);
+    explicit MainPanel(QString title = "WinHider TCP client", QWidget *parent = nullptr);
 
     ~MainPanel() override;
 
     void updateAction();
 
+    void lock(bool value);
+
 public slots:
-
-    void lockAll();
-
-    void unlockAll();
 
     void connectAction();
 

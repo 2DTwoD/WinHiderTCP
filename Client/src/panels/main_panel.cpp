@@ -4,10 +4,10 @@
 
 #define UPDATER_TIME_MS 500
 
-MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), winWork(new WinWork(this)),
+MainPanel::MainPanel(QString title, QWidget *parent) : MainWindowWithTray(parent), winWork(new WinWork(this)),
                                         fileWork(new FileWork(this)), tcpObj(new TCPobj()),
-                                        updateTimer(new QTimer(this)) {
-    this->setWindowTitle("WinHider TCP client");
+                                        updateTimer(new QTimer(this)), title(title) {
+    this->setWindowTitle(title);
     this->resize(310, 150);
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
@@ -30,9 +30,7 @@ MainPanel::MainPanel(QWidget *parent) : QMainWindow(parent), winWork(new WinWork
     QObject::connect(connectButton, &QPushButton::clicked, this, &MainPanel::connectAction);
     QObject::connect(disconnectButton, &QPushButton::clicked, this, &MainPanel::disconnectAction);
     QObject::connect(bindPanel->getBindButton(), &QPushButton::clicked, winWork, &WinWork::startBind);
-    QObject::connect(bindPanel->getBindButton(), &QPushButton::clicked, this, &MainPanel::lockAll);
     QObject::connect(winWork, &WinWork::bindFinished, bindPanel, &BindPanel::bindFinished);
-    QObject::connect(winWork, &WinWork::bindFinished, this, &MainPanel::unlockAll);
     QObject::connect(winWork, &WinWork::keyboardMouseAction, this, &MainPanel::keyboardMouseAction);
     QObject::connect(updateTimer, &QTimer::timeout, this, &MainPanel::updateAction);
 
@@ -63,33 +61,37 @@ void MainPanel::disconnectAction() {
 }
 
 void MainPanel::updateAction() {
+    QString status;
     if (tcpObj->connected()) {
-        QString str = "status: connected to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
-                                       ":" + QString::number(comPanel->getPort());
-        statusLabel->setText(str);
+        if(tcpObj->getSendFlag()){
+            if(tcpObj->isBusy()){
+                setIcon(ICON_CONNECTED);
+                status = "status: connected to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
+                         ":" + QString::number(comPanel->getPort()) + ", busy...";
+            } else {
+                setIcon(ICON_HIDED);
+                status = "status: connected to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
+                         ":" + QString::number(comPanel->getPort()) + " and hided";
+            }
+        } else {
+            setIcon(ICON_CONNECTED);
+            status = "status: connected to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
+                                 ":" + QString::number(comPanel->getPort());
+        }
     } else if(tcpObj->connecting()) {
-        QString str = "status: try connecting to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
+        status = "status: try connecting to address: " + QString::fromLocal8Bit(comPanel->getIP()) +
                       ":" + QString::number(comPanel->getPort());
-        statusLabel->setText(str);
     } else {
-        statusLabel->setText(tcpObj->failed()? "status: failed": "status: disconnected");
+        setIcon(ICON_DISCONNECTED);
+        status = tcpObj->failed()? "status: failed": "status: disconnected";
     }
+    statusLabel->setText(status);
     comPanel->lock(!tcpObj->disconnected() || lockFlag);
     connectButton->setEnabled(!tcpObj->connected() && !lockFlag);
     disconnectButton->setEnabled(tcpObj->connected() && !lockFlag);
+    lock(WinWork::binding() || tcpObj->isBusy());
 }
 
-void MainPanel::lockAll() {
-    lockFlag = true;
-    bindPanel->lock(lockFlag);
-    comPanel->lockAutoStart(lockFlag);
-}
-
-void MainPanel::unlockAll() {
-    lockFlag = false;
-    bindPanel->lock(lockFlag);
-    comPanel->lockAutoStart(lockFlag);
-}
 
 void MainPanel::readConfig() {
     auto list = fileWork->readConfig().split(";");
@@ -128,8 +130,14 @@ void MainPanel::saveConfig() {
 }
 
 void MainPanel::keyboardMouseAction(const QString& keyName) {
-    qDebug("MainPanel: keyboard/mouse action");
     if(keyName != bindPanel->getQKey()) return;
+    qDebug("MainPanel: keyboard/mouse action");
     tcpObj->sendNewToken(keyName, bindPanel->getQWinName());
+}
+
+void MainPanel::lock(bool value) {
+    lockFlag = value;
+    bindPanel->lock(value);
+    comPanel->lockAutoStart(value);
 }
 

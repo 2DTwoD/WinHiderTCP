@@ -24,6 +24,8 @@ public:
     explicit WinWork(QObject *parent);
     ~WinWork() override;
 
+    static bool binding() ;
+
 public slots:
     static void startBind();
 signals:

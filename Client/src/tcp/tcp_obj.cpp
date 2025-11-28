@@ -3,6 +3,8 @@
 
 #include <windows.h>
 
+#define SEND_NEW_TOKEN_RETRY_MS 3000
+
 TCPobj::TCPobj(): currentThread(newThread(this)){
 }
 
@@ -208,4 +210,8 @@ void TCPobj::resetSendFlag() {
 
 QThread *TCPobj::getThread() {
     return currentThread;
+}
+
+bool TCPobj::isBusy() {
+    return sendFlagTimer && sendFlagTimer->isActive();
 }

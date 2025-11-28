@@ -8,8 +8,6 @@
 #include <QTimer>
 #include <QThread>
 
-#define SEND_NEW_TOKEN_RETRY_MS 2000
-
 
 class TCPobj : public QObject {
 Q_OBJECT
@@ -23,7 +21,7 @@ private:
     uint16_t port;
     SOCKET clientSocket{INVALID_SOCKET};
     QMutex mutex;
-    QTimer *sendFlagTimer;
+    QTimer *sendFlagTimer{nullptr};
     QThread *currentThread;
 
     int initWinSock();
@@ -36,15 +34,13 @@ private:
 
     void closeSocket();
 
-    bool getSendFlag();
-
     void setSendFlag(bool value);
 
     bool sendMessage(const QString& message) const;
 
 public:
-    TCPobj();
 
+    TCPobj();
     ~TCPobj() override;
 
     void setIP(char *const newIp);
@@ -67,7 +63,11 @@ public:
 
     void sendNewToken(const QString &key, const QString &wname);
 
+    bool getSendFlag();
+
     QThread *getThread();
+
+    bool isBusy();
 
 public slots:
 
