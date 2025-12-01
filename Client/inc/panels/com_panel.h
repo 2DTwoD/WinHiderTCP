@@ -19,13 +19,14 @@ public:
 
     void lock(bool lockFlag);
     void lockAutoStart(bool lockFlag);
-    char *getIP();
+    void checkIP();
+    void checkPort();
+    QString getIP();
+    void setIP(const QString& value);
     uint16_t getPort();
-    QString getQIP();
-    void setQIP(const QString& value);
     QString getQPort();
-    void setQPort(const QString& value);
+    void setPort(const QString& value);
     uint16_t isAutostart();
-    void setQAutostart(const QString& value);
+    void setAutostart(const QString& value);
 };
 #endif //COM_PANEL_H

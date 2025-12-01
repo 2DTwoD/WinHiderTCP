@@ -65,7 +65,7 @@ MainPanel::~MainPanel() {
 }
 
 void MainPanel::startAction() {
-    qDebug("MainPanel: start action, server with address: %s:%d", comPanel->getIP(), comPanel->getPort());
+    qDebug("MainPanel: start action, server with address: %s:%d", comPanel->getIP().toUtf8().data(), comPanel->getPort());
     tcpObj->start(comPanel->getIP(), comPanel->getPort());
 }
 
@@ -77,11 +77,11 @@ void MainPanel::stopAction() {
 void MainPanel::updateAction() {
     if(tcpObj->started()) {
         setIcon(token.isValid()? ICON_HIDED: ICON_CONNECTED);
-        statusLabel->setText("status: started in address: " + QString::fromUtf8(comPanel->getIP()) +
-                             ":" + QString::number(comPanel->getPort()));
+        statusLabel->setText("status: started in address: " + comPanel->getIP() +
+                             ":" + comPanel->getQPort());
     } else if(tcpObj->starting()) {
-        statusLabel->setText("status: try starting in address: " + QString::fromUtf8(comPanel->getIP()) +
-                             ":" + QString::number(comPanel->getPort()));
+        statusLabel->setText("status: try starting in address: " + comPanel->getIP() +
+                             ":" + comPanel->getQPort());
     } else {
         setIcon(ICON_DISCONNECTED);
         statusLabel->setText(tcpObj->failed() ? "status: failed" : "status: stopped");

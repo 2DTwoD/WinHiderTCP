@@ -1,16 +1,19 @@
 #include "panels/main_window_with_tray.h"
 
 #include <QMenu>
+#include <QPixmap>
 
 MainWindowWithTray::MainWindowWithTray(QWidget *parent): QMainWindow(parent), trayIcon(new QSystemTrayIcon(this)) {
     setWindowFlags(Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint | Qt::MSWindowsFixedSizeDialogHint);
 
-    auto menu = this->createMenu();
-    this->trayIcon->setContextMenu(menu);
-
     disconnectedIcon = QIcon("pics/opened_eye_black.png");
     connectedIcon = QIcon("pics/opened_eye_white.png");
     hidedIcon = QIcon("pics/closed_eye_white.png");
+
+    auto menu = this->createMenu();
+    this->trayIcon->setContextMenu(menu);
+
+
     setIcon(ICON_DISCONNECTED);
 
     this->trayIcon->show();
@@ -43,11 +46,14 @@ void MainWindowWithTray::iconActivated(QSystemTrayIcon::ActivationReason reason_
 }
 
 void MainWindowWithTray::hideEvent(QHideEvent *event) {
-    event->ignore();
-    hide();
+    if(!iconIsNull()){
+        event->ignore();
+        hide();
+    }
 }
 
 void MainWindowWithTray::setIcon(IconType iconType) {
+    if(iconIsNull()) return;
     switch (iconType) {
         case ICON_DISCONNECTED:
             this->trayIcon->setIcon(disconnectedIcon);
@@ -62,4 +68,8 @@ void MainWindowWithTray::setIcon(IconType iconType) {
             this->setWindowIcon(hidedIcon);
             break;
     }
+}
+
+bool MainWindowWithTray::iconIsNull() {
+    return disconnectedIcon.isNull() || hidedIcon.isNull() || hidedIcon.isNull();
 }

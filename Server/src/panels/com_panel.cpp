@@ -34,7 +34,12 @@ ComPanel::ComPanel(QWidget *parent): QFrame(parent), fileWork(new FileWork(this)
     readConfig();
 }
 
-char *ComPanel::getIP() {
+void ComPanel::lock(bool value) {
+    ipLineEdit->setEnabled(!value);
+    portLineEdit->setEnabled(!value);
+}
+
+void ComPanel::checkIP() {
     auto list = ipLineEdit->text().split('.');
     bool ok = true;
     if(list.size() != 4) {
@@ -47,23 +52,26 @@ char *ComPanel::getIP() {
         item.toUShort(&ok);
     }
     if(!ok) ipLineEdit->setText("0.0.0.0");
-
-    return ipLineEdit->text().toLocal8Bit().data();
 }
 
-uint16_t ComPanel::getPort() {
+void ComPanel::checkPort() {
     uint16_t res = portLineEdit->text().toUShort();
     if(!res) res = 55555;
     portLineEdit->setText(QString::number(res));
-    return res;
 }
 
-QString ComPanel::getQIP() {
+QString ComPanel::getIP() {
+    checkIP();
     return ipLineEdit->text();
 }
 
+uint16_t ComPanel::getPort() {
+    checkPort();
+    return portLineEdit->text().toUShort();
+}
+
 QString ComPanel::getQPort() {
-    return portLineEdit->text();
+    return QString::number(getPort());
 }
 
 uint16_t ComPanel::isAutostart() {
@@ -90,15 +98,10 @@ void ComPanel::readConfig() {
 }
 
 void ComPanel::saveConfig() {
-    fileWork->saveConfig(std::move("ip:" + getQIP() + ";port:" + getQPort() +
+    fileWork->saveConfig(std::move("ip:" + getIP() + ";port:" + getQPort() +
     ";autostart:" + QString::number(isAutostart())));
 }
 
 ComPanel::~ComPanel() {
     qDebug("ComPanel: destructor");
-}
-
-void ComPanel::lock(bool value) {
-    ipLineEdit->setEnabled(!value);
-    portLineEdit->setEnabled(!value);
 }

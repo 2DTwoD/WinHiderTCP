@@ -36,7 +36,7 @@ void ComPanel::lock(bool lockFlag) {
     portLineEdit->setEnabled(!lockFlag);
 }
 
-char *ComPanel::getIP() {
+void ComPanel::checkIP() {
     auto list = ipLineEdit->text().split('.');
     bool ok = true;
     if(list.size() != 4) {
@@ -49,23 +49,36 @@ char *ComPanel::getIP() {
         item.toUShort(&ok);
     }
     if(!ok) ipLineEdit->setText("127.0.0.1");
-
-    return ipLineEdit->text().toLocal8Bit().data();
 }
 
-uint16_t ComPanel::getPort() {
+void ComPanel::checkPort() {
     uint16_t res = portLineEdit->text().toUShort();
     if(!res) res = 55555;
     portLineEdit->setText(QString::number(res));
-    return res;
 }
 
-QString ComPanel::getQIP() {
+QString ComPanel::getIP() {
+    checkIP();
     return ipLineEdit->text();
 }
 
+uint16_t ComPanel::getPort() {
+    checkPort();
+    return portLineEdit->text().toUShort();
+}
+
 QString ComPanel::getQPort() {
-    return portLineEdit->text();
+    return QString::number(getPort());
+}
+
+void ComPanel::setIP(const QString& value) {
+    ipLineEdit->setText(value);
+    checkIP();
+}
+
+void ComPanel::setPort(const QString& value) {
+    portLineEdit->setText(value);
+    checkPort();
 }
 
 uint16_t ComPanel::isAutostart() {
@@ -80,14 +93,6 @@ void ComPanel::lockAutoStart(bool lockFlag) {
     autoStartCheckBox->setEnabled(!lockFlag);
 }
 
-void ComPanel::setQIP(const QString& value) {
-    ipLineEdit->setText(value);
-}
-
-void ComPanel::setQPort(const QString& value) {
-    portLineEdit->setText(value);
-}
-
-void ComPanel::setQAutostart(const QString& value) {
+void ComPanel::setAutostart(const QString& value) {
     autoStartCheckBox->setChecked(value.toUInt() > 0);
 }

@@ -109,9 +109,9 @@ void TCPobj::process() {
     emit finished();
 }
 
-void TCPobj::connect(char* ip, uint16_t port) {
+void TCPobj::connect(const QString &ip, uint16_t port) {
     if(connected()) return;
-    setIP(ip);
+    setIP(ip.toUtf8().data());
     setPort(port);
     setCnct(1);
 }
@@ -156,15 +156,18 @@ void TCPobj::closeSocket() {
 }
 
 
-bool TCPobj::sendMessage(const QString& message) {
+bool TCPobj::sendMessage(QString message) {
     if(!connected()) return false;
     // Sending data to the server
-    int sbyteCount = send(clientSocket, message.toUtf8().data(), message.length(), 0);
+    char utf8data[200];
+    memcpy(utf8data, message.toUtf8().data(), 200);
+    //utf8data = message.toUtf8().data();
+    int sbyteCount = send(clientSocket, utf8data, strlen(utf8data), 0);
     if (sbyteCount == SOCKET_ERROR) {
         qDebug("TCPobj: client send error:  %d", WSAGetLastError());
         return false;
     } else {
-        qDebug("TCPobj: client sent %d bytes, message: %s", sbyteCount, message.toUtf8().data());
+        qDebug("TCPobj: client sent %d bytes, message: %s", sbyteCount, utf8data);
     }
     return true;
 }

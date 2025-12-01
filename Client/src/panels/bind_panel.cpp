@@ -10,6 +10,8 @@ BindPanel::BindPanel(QWidget *parent): QFrame(parent) {
     auto winNameLabel = new QLabel("Win. name:", this);
     auto bindKeyLabel = new QLabel("Button:", this);
     winNameLineEdit = new QLineEdit("New folder", this);
+    winNameLineEdit->setMaxLength(11);
+    winNameLineEdit->setFixedWidth(100);
     bindKeyButton = new QPushButton("Not binded", this);
     layout->addWidget(winNameLabel);
     layout->addWidget(winNameLineEdit);

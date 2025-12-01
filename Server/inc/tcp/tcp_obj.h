@@ -36,7 +36,7 @@ public:
 
     void setIP(char *const newIp);
     void setPort(uint16_t newPort);
-    void start(char* ip, uint16_t port);
+    void start(const QString &ip, uint16_t port);
     void stop();
     void shutdown();
     bool stopped();

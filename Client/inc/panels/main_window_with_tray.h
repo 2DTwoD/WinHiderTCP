@@ -24,6 +24,8 @@ private:
     QIcon connectedIcon;
     QIcon hidedIcon;
 
+    bool iconIsNull();
+
 public:
     explicit MainWindowWithTray(QWidget *parent);
     void setIcon(IconType iconType);

@@ -106,9 +106,9 @@ void TCPobj::process() {
     emit finished();
 }
 
-void TCPobj::start(char* ip, uint16_t port) {
+void TCPobj::start(const QString &ip, uint16_t port) {
     if(!stopped()) return;
-    setIP(ip);
+    setIP(ip.toUtf8().data());
     setPort(port);
     setStrt(1);
     qDebug("strt: %d", getStrt());

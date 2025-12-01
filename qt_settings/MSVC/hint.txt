@@ -1,0 +1,4 @@
+CMakeLists: 
+1. set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++17 -Zc:__cplusplus")
+2. set(CMAKE_PREFIX_PATH "D:/Distrib/Qt/Qt 6_9_1/6.9.1/msvc2022_64")
+обязательно указывать в add_executable(...) все .h (с Q_OBJECT макросом) и .cpp файлы

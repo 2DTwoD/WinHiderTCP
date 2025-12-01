@@ -1,4 +1,4 @@
 //cmake settings env: "-DCMAKE_PREFIX_PATH=D:\Distrib\Qt\Qt 6_7_2\mingw_64\lib\cmake" - не надо
 //start config env: "QT_QPA_PLATFORM_PLUGIN_PATH=D:\Distrib\Qt\Qt 6_7_2\mingw_64\plugins\platforms" -не надо
-cmake file: set(CMAKE_PREFIX_PATH "D:\\Distrib\\Qt\\Qt 6_7_2\\mingw_64\\") - надо!
+CMakeLists: set(CMAKE_PREFIX_PATH "D:\\Distrib\\Qt\\Qt 6_7_2\\mingw_64\\") - надо!
 обязательно указывать в add_executable(...) все .h (с Q_OBJECT макросом) и .cpp файлы

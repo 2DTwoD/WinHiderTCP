@@ -43,11 +43,14 @@ void MainWindowWithTray::iconActivated(QSystemTrayIcon::ActivationReason reason_
 }
 
 void MainWindowWithTray::hideEvent(QHideEvent *event) {
-    event->ignore();
-    hide();
+    if(!iconIsNull()) {
+        event->ignore();
+        hide();
+    }
 }
 
 void MainWindowWithTray::setIcon(IconType iconType) {
+    if(iconIsNull()) return;
     switch (iconType) {
         case ICON_DISCONNECTED:
             this->trayIcon->setIcon(disconnectedIcon);
@@ -62,4 +65,8 @@ void MainWindowWithTray::setIcon(IconType iconType) {
             this->setWindowIcon(hidedIcon);
             break;
     }
+}
+
+bool MainWindowWithTray::iconIsNull() {
+    return disconnectedIcon.isNull() || hidedIcon.isNull() || hidedIcon.isNull();
 }

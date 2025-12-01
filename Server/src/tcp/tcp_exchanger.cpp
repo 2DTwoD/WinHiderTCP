@@ -35,7 +35,7 @@ void TCPexchanger::process() {
 
 Token TCPexchanger::parseMessage(char *const message) {
     Token result(true);
-    QString qMessage(message);
+    auto qMessage = QString::fromUtf8(message);
     auto list = qMessage.split(";");
     for(auto item: list){
         auto keyValue = item.split("=");

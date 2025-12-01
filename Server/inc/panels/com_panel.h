@@ -19,9 +19,10 @@ public:
     ~ComPanel() override;
 
     void lock(bool value);
-    char *getIP();
+    void checkIP();
+    void checkPort();
+    QString getIP();
     uint16_t getPort();
-    QString getQIP();
     QString getQPort();
     uint16_t isAutostart();
     void readConfig();

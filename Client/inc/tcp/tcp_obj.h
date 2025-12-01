@@ -40,7 +40,7 @@ private:
 
     void setCnct(int value);
 
-    bool sendMessage(const QString& message);
+    bool sendMessage(QString message);
 
 public:
 
@@ -51,7 +51,7 @@ public:
 
     void setPort(uint16_t newPort);
 
-    void connect(char *ip, uint16_t port);
+    void connect(const QString &ip, uint16_t port);
 
     void disconnect();
 

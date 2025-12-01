@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
-#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++ -static-libgcc")
-#set(CMAKE_EXE_LINKER_FLAGS "-static")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++17 -Zc:__cplusplus")
+
+#if (CMAKE_BUILD_TYPE MATCHES "Release")
+#    add_definitions(-DQT_NO_DEBUG_OUTPUT)
+#endif()
+
 project(Client)
 
 link_libraries(ws2_32 wsock32)
@@ -9,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-set(CMAKE_PREFIX_PATH "D:\\Distrib\\Qt\\Qt 6_7_2\\mingw_64\\")
+set(CMAKE_PREFIX_PATH "D:/Distrib/Qt/Qt 6_9_1/6.9.1/msvc2022_64")
 
 find_package(
         Qt6 COMPONENTS
@@ -20,6 +24,7 @@ find_package(
 
 add_executable(
         Client
+#        WIN32
         #.cpp
         main.cpp
         src/panels/bind_panel.cpp
