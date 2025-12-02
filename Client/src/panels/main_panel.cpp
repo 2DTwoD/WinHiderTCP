@@ -86,11 +86,14 @@ void MainPanel::updateAction() {
         setIcon(ICON_DISCONNECTED);
         status = tcpObj->failed()? "status: failed": "status: disconnected";
     }
+    if(WinWork::binding()){
+        status = "status: binding...";
+    }
     statusLabel->setText(status);
-    comPanel->lock(!tcpObj->disconnected());
-    connectButton->setEnabled(!tcpObj->connected() && !lockFlag);
-    disconnectButton->setEnabled(!tcpObj->disconnected() && !lockFlag);
-    lock(WinWork::binding() || tcpObj->getSendFlag());
+    comPanel->lock(!tcpObj->disconnected() || WinWork::binding());
+    connectButton->setEnabled(!tcpObj->connected() && !WinWork::binding());
+    disconnectButton->setEnabled(!tcpObj->disconnected() && !WinWork::binding());
+    lock(!tcpObj->disconnected() || WinWork::binding());
 }
 
 
@@ -141,4 +144,3 @@ void MainPanel::lock(bool value) {
     bindPanel->lock(value);
     comPanel->lockAutoStart(value);
 }
-

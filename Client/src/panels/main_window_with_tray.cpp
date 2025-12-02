@@ -25,7 +25,6 @@ MainWindowWithTray::MainWindowWithTray(QWidget *parent): QMainWindow(parent), tr
     auto menu = this->createMenu();
     this->trayIcon->setContextMenu(menu);
 
-
     setIcon(ICON_DISCONNECTED);
 
     this->trayIcon->show();

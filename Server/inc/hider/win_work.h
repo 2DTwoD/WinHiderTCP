@@ -27,6 +27,7 @@ private:
     static void LowLevelKeyBoardMouse(int nCode, WPARAM wParam, const PKBDLLHOOKSTRUCT& keyInfo);
     static BOOL CALLBACK enumWindowCB(HWND window, const LPARAM lParam);
     static void showHide(HWND window, bool visible);
+    static void simulateLeftClick();
 public:
 
     explicit WinWork(QObject *parent);

@@ -64,7 +64,7 @@ int TCPobj::receiveLoop() {
     // Receiving data from the server
     char receiveBuffer[10];
     int rbyteCount;
-    while(!shtdwn) {
+    while(true) {
         memset(receiveBuffer, 0, 10);
         rbyteCount = recv(clientSocket, receiveBuffer, sizeof(receiveBuffer), 0);
         if (rbyteCount <= 0) {
@@ -82,7 +82,6 @@ int TCPobj::receiveLoop() {
             }
         }
     }
-    return 1;
 }
 
 void TCPobj::process() {
@@ -120,6 +119,7 @@ void TCPobj::disconnect() {
     if (disconnected()) return;
     closeSocket();
     setCnct(0);
+    resetSendFlag();
 }
 
 void TCPobj::shutdown() {
@@ -208,7 +208,7 @@ bool TCPobj::getSendFlag() {
 void TCPobj::resetSendFlag() {
     qDebug("TCPobj: reset sendFlag");
     setSendFlag(false);
-    sendFlagTimer->stop();
+    if(sendFlagTimer) sendFlagTimer->stop();
 }
 
 QThread *TCPobj::getThread() {
