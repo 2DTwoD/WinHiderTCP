@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QSystemTrayIcon>
+#include <QImage>
+#include <QColor>
 
 enum IconType{
     ICON_DISCONNECTED = 0,
@@ -25,6 +27,7 @@ private:
     QIcon hidedIcon;
 
     bool iconIsNull();
+    QImage getColoredImage(QImage src, QColor color);
 
 public:
     explicit MainWindowWithTray(QWidget *parent);

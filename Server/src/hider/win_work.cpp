@@ -1,6 +1,6 @@
 #include "hider/win_work.h"
 
-WinWork::WinWork(QObject *parent): QObject(parent) {
+WinWork::WinWork(QObject *parent): QObject(parent){
     ths = this;
     keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelKeyBoardProc, GetModuleHandle(nullptr), 0);
     mouseHook = SetWindowsHookEx(WH_MOUSE_LL, LowLevelMouseProc, GetModuleHandle(nullptr), 0);

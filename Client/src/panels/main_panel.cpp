@@ -7,7 +7,7 @@
 MainPanel::MainPanel(QString title, QWidget *parent) : MainWindowWithTray(parent), winWork(new WinWork(this)),
                                         fileWork(new FileWork(this)), tcpObj(new TCPobj()),
                                         updateTimer(new QTimer(this)), title(title) {
-    this->setWindowTitle(title);
+    this->setWindowTitle(title + " client");
     this->resize(310, 150);
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
@@ -87,7 +87,7 @@ void MainPanel::updateAction() {
         status = tcpObj->failed()? "status: failed": "status: disconnected";
     }
     statusLabel->setText(status);
-    comPanel->lock(!tcpObj->disconnected() || lockFlag);
+    comPanel->lock(!tcpObj->disconnected());
     connectButton->setEnabled(!tcpObj->connected() && !lockFlag);
     disconnectButton->setEnabled(!tcpObj->disconnected() && !lockFlag);
     lock(WinWork::binding() || tcpObj->getSendFlag());

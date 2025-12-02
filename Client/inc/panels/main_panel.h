@@ -33,7 +33,7 @@ private:
     void readConfig();
     void saveConfig();
 public:
-    explicit MainPanel(QString title = "WinHider TCP client", QWidget *parent = nullptr);
+    explicit MainPanel(QString title = "WinHider TCP", QWidget *parent = nullptr);
 
     ~MainPanel() override;
 

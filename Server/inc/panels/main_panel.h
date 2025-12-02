@@ -36,7 +36,7 @@ private:
 
 public:
 
-    explicit MainPanel(QString title = "WinHider TCP server", QWidget *parent = nullptr);
+    explicit MainPanel(QString title = "WinHider TCP", QWidget *parent = nullptr);
     ~MainPanel() override;
 
     void updateAction();

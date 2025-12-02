@@ -8,7 +8,7 @@
 MainPanel::MainPanel(QString title, QWidget *parent) : MainWindowWithTray(parent), updateTimer(new QTimer(this)),
                                         tcpObj(new TCPobj()), winWork(new WinWork(this)),
                                         clientList(std::make_unique<QSet<TCPexchanger*>>()), title(title) {
-    this->setWindowTitle(title);
+    this->setWindowTitle(title + " server");
     this->resize(310, 100);
     auto mainFrame = new QFrame(this);
     auto mainLayout = new QVBoxLayout(mainFrame);
@@ -139,18 +139,17 @@ void MainPanel::keyboardMouseAction(const QString &keyName) {
 
 void MainPanel::newToken(const Token& newToken, TCPexchanger *const sender) {
     qDebug("WinWork: newToken");
-
+    newTokenMutex.lock();
     if(token.isValid()){
         qDebug("WinWork: emit busy");
         emit hiderBusy();
         return;
     }
-    newTokenMutex.lock();
     token = newToken;
     qDebug("WinWork: emit token accepted");
     emit tokenAccepted(sender);
-    newTokenMutex.unlock();
     changeWindowVisible(false);
+    newTokenMutex.unlock();
 }
 
 void MainPanel::deleteTCPexchanger(TCPexchanger *const tcpExchager) {
