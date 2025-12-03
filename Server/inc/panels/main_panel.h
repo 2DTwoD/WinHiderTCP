@@ -21,6 +21,7 @@ private:
     WinWork *winWork;
     QTimer *updateTimer;
     QMutex clientListMutex;
+    QMutex newTokenMutex;
     Token token;
     QString title;
 

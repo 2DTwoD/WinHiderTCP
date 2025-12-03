@@ -18,7 +18,6 @@ Q_OBJECT
 
 private:
     QSystemTrayIcon *trayIcon;
-    QMenu *trayIconMenu;
 
     QMenu *createMenu();
 

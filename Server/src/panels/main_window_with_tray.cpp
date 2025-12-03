@@ -10,9 +10,6 @@
 MainWindowWithTray::MainWindowWithTray(QWidget *parent): QMainWindow(parent), trayIcon(new QSystemTrayIcon(this)) {
     setWindowFlags(Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint | Qt::MSWindowsFixedSizeDialogHint);
 
-    auto menu = this->createMenu();
-    this->trayIcon->setContextMenu(menu);
-
     disconnectedIcon = QIcon("pics/opened_eye.png");
 
     connectedIcon = QIcon(QPixmap::fromImage(getColoredImage(QImage("pics/opened_eye.png"),
@@ -22,6 +19,8 @@ MainWindowWithTray::MainWindowWithTray(QWidget *parent): QMainWindow(parent), tr
                                                          QColor(255, 255, 255))));
     setIcon(ICON_DISCONNECTED);
 
+    auto menu = this->createMenu();
+    this->trayIcon->setContextMenu(menu);
     this->trayIcon->show();
 
     QObject::connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindowWithTray::iconActivated);

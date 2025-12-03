@@ -80,7 +80,7 @@ void MainPanel::updateAction() {
         status = "status: started in address: " + comPanel->getIP() +
                                     ":" + comPanel->getQPort();
         if(token.isValid()){
-            status += ", busy(" + token.getKey() + ")";
+            status += ", hide(" + token.getName() + "/" + token.getKey() + ")";
         }
         setIcon(token.isValid()? ICON_HIDED: ICON_CONNECTED);
     } else if(tcpObj->starting()) {
@@ -144,12 +144,15 @@ void MainPanel::keyboardMouseAction(const QString &keyName) {
 
 void MainPanel::newToken(const Token& newToken, TCPexchanger *const sender) {
     qDebug("MainPanel: newToken");
+    newTokenMutex.lock();
     if(token.isValid()){
+        newTokenMutex.unlock();
         qDebug("MainPanel: emit busy");
         emit hiderBusy();
         return;
     }
     token = newToken;
+    newTokenMutex.unlock();
     qDebug("MainPanel: emit token accepted");
     emit tokenAccepted(sender);
     changeWindowVisible(false);
