@@ -24,13 +24,15 @@ BOOL CALLBACK WinWork::enumWindowCB(HWND window, const LPARAM lParam) {
 void WinWork::showHide(HWND window, bool visible) {
     if(!IsWindowVisible(window))
         SetForegroundWindow(window);
+
     if (visible) {
+        lastFocus = GetFocus();
         ShowWindow(window, SW_SHOW);
         SetFocus(window);
     } else {
         ShowWindow(window, SW_HIDE);
+        SetFocus(lastFocus);
     }
-//    simulateLeftClick();
 }
 
 void WinWork::changeWindowVisible(bool visible, const QString& winName) {
@@ -69,23 +71,4 @@ void WinWork::LowLevelKeyBoardMouse(int nCode, WPARAM wParam, PKBDLLHOOKSTRUCT c
         if(keyName.isEmpty()) return;
         emit ths->keyboardMouseAction(keyName);
     }
-}
-
-void WinWork::simulateLeftClick() {
-//    INPUT Inputs[3] = {0};
-//
-//    Inputs[0].type = INPUT_MOUSE;
-//    Inputs[0].mi.dx = 0;
-//    Inputs[0].mi.dy = 0;
-//    Inputs[0].mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
-//
-//    Inputs[1].type = INPUT_MOUSE;
-//    Inputs[1].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-//
-//    Inputs[2].type = INPUT_MOUSE;
-//    Inputs[2].mi.dwFlags = MOUSEEVENTF_LEFTUP;
-//
-//    SendInput(3, Inputs, sizeof(INPUT));
-    keybd_event(VK_LWIN, 0, 0, 0);
-    keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0);
 }

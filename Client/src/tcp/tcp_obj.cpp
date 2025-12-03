@@ -75,9 +75,11 @@ int TCPobj::receiveLoop() {
             qDebug("TCPobj: client received data: %s", receiveBuffer);
             if(!strcmp(receiveBuffer, "OK") && sendFlagTimer->isActive()){
                 qDebug("TCPobj: stop sendFlagTimer");
-                emit stopSendFlagTimer();
+                emit stopSendFlagTimerSignal();
             } else if(!strcmp(receiveBuffer, "FREE")){
-                qDebug("TCPobj: reset sendFlag");
+                qDebug("TCPobj: reset sendFlag with delay");
+                stopSendFlagTimer();
+                QThread::msleep(100);
                 setSendFlag(false);
             }
         }
@@ -186,13 +188,14 @@ void TCPobj::sendNewToken(const QString& key, const QString& wname) {
         setSendFlag(true);
         sendFlagTimer = new QTimer(QThread::currentThread()->parent());
         QObject::connect(sendFlagTimer, &QTimer::timeout, this, &TCPobj::resetSendFlag, Qt::DirectConnection);
-        QObject::connect(this, &TCPobj::stopSendFlagTimer, sendFlagTimer, &QTimer::stop);
+        QObject::connect(this, &TCPobj::stopSendFlagTimerSignal, sendFlagTimer, &QTimer::stop);
         sendFlagTimer->start(SEND_NEW_TOKEN_RETRY_MS);
         qDebug("TCPobj: send new Token");
     }
 }
 
 void TCPobj::setSendFlag(bool value) {
+    qDebug("TCPobj: setSendFlag: %d", value);
     mutex.lock();
     sendFlag = value;
     mutex.unlock();
@@ -208,7 +211,7 @@ bool TCPobj::getSendFlag() {
 void TCPobj::resetSendFlag() {
     qDebug("TCPobj: reset sendFlag");
     setSendFlag(false);
-    if(sendFlagTimer) sendFlagTimer->stop();
+    stopSendFlagTimer();
 }
 
 QThread *TCPobj::getThread() {
@@ -230,4 +233,8 @@ void TCPobj::setCnct(int value) {
     mutex.lock();
     cnct = value;
     mutex.unlock();
+}
+
+void TCPobj::stopSendFlagTimer() {
+    if(sendFlagTimer) sendFlagTimer->stop();
 }

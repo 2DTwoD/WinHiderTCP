@@ -22,12 +22,13 @@ private:
     static inline WinWork *ths{nullptr};
     inline static HHOOK keyboardHook{};
     inline static HHOOK mouseHook{};
+    inline static HWND lastFocus{};
+
     static LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam);
     static LRESULT CALLBACK LowLevelKeyBoardProc(int nCode, WPARAM wParam, LPARAM lParam);
     static void LowLevelKeyBoardMouse(int nCode, WPARAM wParam, const PKBDLLHOOKSTRUCT& keyInfo);
     static BOOL CALLBACK enumWindowCB(HWND window, const LPARAM lParam);
     static void showHide(HWND window, bool visible);
-    static void simulateLeftClick();
 public:
 
     explicit WinWork(QObject *parent);

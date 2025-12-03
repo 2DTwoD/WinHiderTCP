@@ -42,6 +42,8 @@ private:
 
     bool sendMessage(QString message);
 
+    void stopSendFlagTimer();
+
 public:
 
     TCPobj();
@@ -81,7 +83,7 @@ public slots:
 
 signals:
 
-    void stopSendFlagTimer();
+    void stopSendFlagTimerSignal();
 
     void finished();
 };

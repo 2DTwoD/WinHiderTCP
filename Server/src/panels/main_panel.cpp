@@ -75,17 +75,22 @@ void MainPanel::stopAction() {
 }
 
 void MainPanel::updateAction() {
+    QString status;
     if(tcpObj->started()) {
+        status = "status: started in address: " + comPanel->getIP() +
+                                    ":" + comPanel->getQPort();
+        if(token.isValid()){
+            status += ", busy(" + token.getKey() + ")";
+        }
         setIcon(token.isValid()? ICON_HIDED: ICON_CONNECTED);
-        statusLabel->setText("status: started in address: " + comPanel->getIP() +
-                             ":" + comPanel->getQPort());
     } else if(tcpObj->starting()) {
-        statusLabel->setText("status: try starting in address: " + comPanel->getIP() +
-                             ":" + comPanel->getQPort());
+        status = "status: try starting in address: " + comPanel->getIP() +
+                             ":" + comPanel->getQPort();
     } else {
         setIcon(ICON_DISCONNECTED);
-        statusLabel->setText(tcpObj->failed() ? "status: failed" : "status: stopped");
+        status = tcpObj->failed() ? "status: failed" : "status: stopped";
     }
+    statusLabel->setText(status);
     comPanel->lock(!tcpObj->stopped());
     startButton->setEnabled(tcpObj->stopped());
     stopButton->setEnabled(!tcpObj->stopped());
@@ -132,33 +137,32 @@ void MainPanel::freeDone() {
 
 void MainPanel::keyboardMouseAction(const QString &keyName) {
     if (token.isValid() && keyName == token.getKey()) {
-        qDebug("WinWork: keyboard/mouse action with new token");
+        qDebug("MainPanel: keyboard/mouse action with new token");
         changeWindowVisible(true);
     }
 }
 
 void MainPanel::newToken(const Token& newToken, TCPexchanger *const sender) {
-    qDebug("WinWork: newToken");
-    newTokenMutex.lock();
+    qDebug("MainPanel: newToken");
     if(token.isValid()){
-        qDebug("WinWork: emit busy");
+        qDebug("MainPanel: emit busy");
         emit hiderBusy();
         return;
     }
     token = newToken;
-    qDebug("WinWork: emit token accepted");
+    qDebug("MainPanel: emit token accepted");
     emit tokenAccepted(sender);
     changeWindowVisible(false);
-    newTokenMutex.unlock();
 }
 
 void MainPanel::deleteTCPexchanger(TCPexchanger *const tcpExchager) {
     clientListMutex.lock();
-    if(tcpExchager->accepted()){
-        resetTokenAndShowWindow();
-    }
+    bool accepted = tcpExchager->accepted();
     clientList->erase(clientList->constFind(tcpExchager));
     clientListMutex.unlock();
+    if(accepted){
+        resetTokenAndShowWindow();
+    }
     qDebug("MainPanel: clientList size = %d", clientList->size());
 }
 
